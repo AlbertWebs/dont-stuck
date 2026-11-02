@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DisbursementController;
 use App\Http\Controllers\Admin\LoanProductController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\PortfolioController;
+use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
 use App\Http\Controllers\Admin\ReportExportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WebsitePageController;
@@ -66,6 +67,8 @@ Route::prefix('client')->name('client.')->group(function (): void {
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active'])->group(function (): void {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [AdminProfileController::class, 'update'])->name('profile.update');
     Route::get('/applications', [AdminApplicationController::class, 'index'])->name('applications.index');
     Route::get('/applications/{application}', [AdminApplicationController::class, 'show'])->name('applications.show');
     Route::post('/applications/{application}/assign', [AdminApplicationController::class, 'assign'])->name('applications.assign');

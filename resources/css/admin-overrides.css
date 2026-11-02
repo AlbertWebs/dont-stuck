@@ -594,6 +594,118 @@
 }
 
 @media screen {
+    body.admin-body .admin-profile-shortcut {
+        color: var(--admin-green-bright);
+        font-size: 13px;
+        font-weight: 750;
+        text-decoration: none;
+    }
+
+    body.admin-body .admin-profile-shortcut:hover {
+        color: var(--brand);
+        text-decoration: underline;
+    }
+
+    body.admin-body .admin-avatar-link {
+        display: inline-flex;
+        border-radius: 50%;
+        text-decoration: none;
+    }
+
+    body.admin-body .admin-avatar-link:focus-visible {
+        outline: 3px solid #d1a900;
+        outline-offset: 3px;
+    }
+
+    body.admin-body .admin-profile-form {
+        display: grid;
+        gap: 18px;
+        max-width: 920px;
+    }
+
+    body.admin-body .admin-profile-panel {
+        padding: 24px;
+    }
+
+    body.admin-body .admin-profile-panel .panel-heading {
+        align-items: flex-start;
+        margin-bottom: 22px;
+    }
+
+    body.admin-body .admin-profile-fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px 22px;
+    }
+
+    body.admin-body .admin-profile-role {
+        padding: 6px 11px;
+        border: 1px solid #d5e6d9;
+        border-radius: 999px;
+        background: #edf5ef;
+        color: #245b3d;
+        font-size: 12px;
+        font-weight: 750;
+        text-transform: capitalize;
+        white-space: nowrap;
+    }
+
+    body.admin-body .admin-profile-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 22px;
+        padding-top: 18px;
+        border-top: 1px solid var(--admin-line);
+    }
+
+    body.admin-body .admin-profile-actions p {
+        margin: 0;
+        color: var(--admin-muted);
+        font-size: 13px;
+    }
+
+    body.admin-body .admin-profile-panel .field-error {
+        color: #a63d36;
+        font-weight: 650;
+    }
+
+    body.admin-body.theme-dark .admin-profile-role {
+        border-color: #45624d;
+        background: #293a2f;
+        color: #c1e5cb;
+    }
+
+    body.admin-body.theme-dark .admin-profile-panel .field-error {
+        color: #ffb2a8;
+    }
+
+    @media (max-width: 760px) {
+        body.admin-body .admin-profile-panel {
+            padding: 17px;
+        }
+
+        body.admin-body .admin-profile-fields {
+            grid-template-columns: 1fr;
+        }
+
+        body.admin-body .admin-profile-actions {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        body.admin-body .admin-profile-actions .button {
+            justify-content: center;
+        }
+
+        body.admin-body .admin-profile-shortcut,
+        body.admin-body .topbar-date {
+            display: none;
+        }
+    }
+}
+
+@media screen {
     body.admin-body .product-admin-card .field-label-line {
         position: relative;
         z-index: 1;
