@@ -13,12 +13,9 @@
             <div class="hero-actions"><a class="button button-dark" href="{{ route('apply') }}">Start an application <span aria-hidden="true">↗</span></a><a class="text-link" href="{{ route('products') }}">Explore loan options <span aria-hidden="true">→</span></a></div>
             <div class="hero-proof"><div class="proof-avatars" aria-hidden="true"><span>D</span><span>S</span><span>S</span></div><span>Local support, clear communication</span></div>
         </div>
-        <div class="hero-art" aria-label="A simple illustration of steady financial progress">
-            <div class="art-sun"></div><div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
-            <div class="art-card art-card-top"><span class="art-icon">↗</span><span><small>YOUR NEXT STEP</small><strong>Starts with a conversation</strong></span></div>
-            <div class="art-card art-card-bottom"><span class="progress-mark"><i></i><i></i><i></i></span><span><small>THOUGHTFUL PROCESS</small><strong>Apply · Review · Decide</strong></span></div>
-            <div class="art-center"><span>DS</span><small>Enriching lives</small></div>
-            <div class="art-label"><span>01</span>Support shaped around your plans</div>
+        <div class="hero-photo-panel">
+            <img src="{{ asset('images/homepage-consultation-hero.webp') }}" alt="A Kenyan small business owner discussing her plans with a financial advisor" width="1672" height="941" fetchpriority="high" decoding="async">
+            <div class="hero-photo-caption"><span>YOUR NEXT STEP</span><strong>Starts with a conversation</strong></div>
         </div>
     </div>
 </section>
