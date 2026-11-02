@@ -220,18 +220,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json().catch(() => ({}));
 
                 if (response.status === 422) {
-                    showFeedback(result.message || 'Please review the highlighted fields and try again.', 'error');
+                    showFeedback(`${result.message || 'Please review the highlighted fields and try again.'} Your entries and selected documents are still here.`, 'error');
                     displayServerErrors(result.errors || {});
                     return;
                 }
 
                 if (response.status === 413) {
-                    showFeedback('The upload is too large. Keep each document below 25 MB and try again.', 'error');
+                    showFeedback('The upload is too large. Keep each document below 25 MB and try again. Your entries and selected documents are still here.', 'error');
                     return;
                 }
 
                 if (!response.ok || !result.reference) {
-                    showFeedback(result.message || 'We could not submit your application. Please try again.', 'error');
+                    showFeedback(`${result.message || 'We could not submit your application. Please try again.'} Your entries and selected documents are still here.`, 'error');
                     return;
                 }
 
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 feedback.append(heading, reference, confirmationLink);
                 feedback.hidden = false;
             } catch {
-                showFeedback('We could not reach the server. Check your connection and try again.', 'error');
+                showFeedback('We could not reach the server. Check your connection and try again. Your entries and selected documents are still here.', 'error');
             } finally {
                 isSubmitting = false;
                 stepForm.removeAttribute('aria-busy');
