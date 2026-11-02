@@ -8,6 +8,7 @@ use App\Services\PdfReportExporter;
 use App\Services\PortfolioReportService;
 use App\Services\PrintReportPresenter;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -25,6 +26,15 @@ class ReportExportController extends Controller
         $filters['product_name'] = $options['products']->firstWhere('id', $filters['product_id'] ?? null)?->name;
         $filters['borrower_name'] = $options['borrowers']->firstWhere('id', $filters['borrower_id'] ?? null)?->full_name;
 
+        $applicationPalette = ['submitted' => '#d6a81e', 'under_review' => '#5687b2', 'verification_assessment' => '#8f74b7', 'pending_approval' => '#d88a43', 'approved' => '#4e9b67', 'finance_processing' => '#478d8a', 'pending_disbursement' => '#7956a8', 'disbursed' => '#377cb0', 'active' => '#418f66', 'fully_repaid' => '#69ad7e', 'rejected' => '#ba5b50', 'additional_information_required' => '#c98536', 'on_hold' => '#7e8492', 'cancelled' => '#777f86'];
+        $accountPalette = ['pending_disbursement' => '#8f74b7', 'active' => '#4e9b67', 'partially_repaid' => '#5687b2', 'overdue' => '#d88a43', 'defaulted' => '#ba5b50', 'fully_repaid' => '#69ad7e', 'closed' => '#777f86'];
+        $applicationTotal = (int) $summary['application_statuses']->sum('total');
+        $accountTotal = (int) $summary['account_statuses']->sum('total');
+        $applicationSlices = $this->donutSlices($summary['application_statuses'], $applicationTotal, $applicationPalette);
+        $accountSlices = $this->donutSlices($summary['account_statuses'], $accountTotal, $accountPalette);
+        $trendMaximum = max(1, ...array_map(fn (array $month): float => max((float) $month['disbursed'], (float) $month['collected'], (float) $month['expected']), $summary['monthly_trends']));
+        $agingMaximum = max(1, ...array_map(fn (array $bucket): float => (float) $bucket['amount'], array_values($summary['aging'])));
+
         return view('admin.reports', [
             'reportType' => $type,
             'reportTitle' => $reports->titles()[$type],
@@ -35,7 +45,33 @@ class ReportExportController extends Controller
             'filters' => $filters,
             'filterSummary' => $presenter->subtitle($filters),
             'reportTypes' => $reports->titles(),
+            'applicationPalette' => $applicationPalette,
+            'accountPalette' => $accountPalette,
+            'applicationTotal' => $applicationTotal,
+            'accountTotal' => $accountTotal,
+            'applicationSlices' => $applicationSlices,
+            'accountSlices' => $accountSlices,
+            'trendMaximum' => $trendMaximum,
+            'agingMaximum' => $agingMaximum,
         ]);
+    }
+
+    /** @param Collection<int, object> $statuses
+     * @param  array<string, string>  $palette
+     * @return array<int, string>
+     */
+    private function donutSlices(Collection $statuses, int $total, array $palette): array
+    {
+        $slices = [];
+        $offset = 0.0;
+
+        foreach ($statuses as $status) {
+            $end = $offset + ($total > 0 ? ((float) $status->total / $total) * 100 : 0);
+            $slices[] = ($palette[$status->status] ?? '#91999c').' '.$offset.'% '.$end.'%';
+            $offset = $end;
+        }
+
+        return $slices;
     }
 
     public function excel(Request $request, PortfolioReportService $reports, ExcelXmlExporter $exporter): StreamedResponse
