@@ -21,6 +21,7 @@ class ReportExportController extends Controller
         $this->authorizeStaff($request);
         $filters = $this->filters($request, $reports);
         $type = $filters['report_type'];
+        $showReportDetail = $request->query->has('report_type');
         $summary = $reports->summary($request->user(), $filters);
         $options = $reports->options($request->user());
         $filters['product_name'] = $options['products']->firstWhere('id', $filters['product_id'] ?? null)?->name;
@@ -34,12 +35,28 @@ class ReportExportController extends Controller
         $accountSlices = $this->donutSlices($summary['account_statuses'], $accountTotal, $accountPalette);
         $trendMaximum = max(1, ...array_map(fn (array $month): float => max((float) $month['disbursed'], (float) $month['collected'], (float) $month['expected']), $summary['monthly_trends']));
         $agingMaximum = max(1, ...array_map(fn (array $bucket): float => (float) $bucket['amount'], array_values($summary['aging'])));
+        $reportRows = $reports->displayRows($type, $request->user(), $filters);
+        $moneyColumns = match ($type) {
+            'applications' => [3, 4],
+            'disbursements' => [3, 4, 5],
+            'repayments' => [3, 4, 5, 6, 7],
+            'outstanding' => [3, 4, 5, 6, 7],
+            'overdue' => [5, 6, 7, 8, 9],
+            'borrower_statement' => [3, 4, 5, 6, 7],
+        };
+        $reportTotals = [];
+        foreach ($moneyColumns as $column) {
+            $total = array_sum(array_map(fn (array $row): float => (float) ($row[$column] ?? 0), $reportRows));
+            $reportTotals[$column] = 'KSh '.number_format($total, 2);
+        }
 
         return view('admin.reports', [
             'reportType' => $type,
             'reportTitle' => $reports->titles()[$type],
             'reportHeaders' => $reports->headers($type),
-            'reportRows' => $reports->displayRows($type, $request->user(), $filters),
+            'reportRows' => $reportRows,
+            'reportTotals' => $reportTotals,
+            'showReportDetail' => $showReportDetail,
             'summary' => $summary,
             'options' => $options,
             'filters' => $filters,

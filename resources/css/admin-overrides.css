@@ -1499,3 +1499,26 @@
         }
     }
 }
+body.admin-body .report-data-panel .data-table tfoot tr {
+    background: #edf4ee;
+    border-top: 2px solid #bed2c2;
+}
+
+body.admin-body .report-data-panel .data-table tfoot th,
+body.admin-body .report-data-panel .data-table tfoot td {
+    color: #1f4930;
+    font-size: 12px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+body.admin-body.theme-dark .report-data-panel .data-table tfoot tr {
+    background: #293a2f;
+    border-color: #45624d;
+}
+
+body.admin-body.theme-dark .report-data-panel .data-table tfoot th,
+body.admin-body.theme-dark .report-data-panel .data-table tfoot td {
+    color: #c1e5cb;
+}
