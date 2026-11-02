@@ -594,6 +594,136 @@
 }
 
 @media screen {
+    body.admin-body .product-admin-card .field-label-line {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+
+    body.admin-body .product-admin-card .field-label-line label {
+        margin: 0;
+    }
+
+    body.admin-body .field-tooltip {
+        position: relative;
+        display: inline-grid;
+        flex: 0 0 21px;
+        place-items: center;
+        width: 21px;
+        height: 21px;
+        margin-left: auto;
+        padding: 0;
+        border: 1px solid #c5d6ca;
+        border-radius: 50%;
+        background: #edf5ef;
+        color: #285b3f;
+        cursor: help;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    body.admin-body .field-tooltip::after {
+        position: absolute;
+        top: calc(100% + 9px);
+        right: 0;
+        z-index: 70;
+        width: min(270px, calc(100vw - 40px));
+        padding: 11px 13px;
+        border: 1px solid #42584a;
+        border-radius: 8px;
+        background: #1d2922;
+        box-shadow: 0 12px 28px rgba(15, 27, 19, 0.22);
+        color: #f5f8f5;
+        content: attr(data-tooltip);
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1.45;
+        opacity: 0;
+        pointer-events: none;
+        text-align: left;
+        text-transform: none;
+        transform: translateY(-3px);
+        transition: opacity 120ms ease, transform 120ms ease;
+        visibility: hidden;
+        white-space: normal;
+    }
+
+    body.admin-body .field-tooltip:hover::after,
+    body.admin-body .field-tooltip:focus-visible::after {
+        opacity: 1;
+        transform: translateY(0);
+        visibility: visible;
+    }
+
+    body.admin-body .field-tooltip:focus-visible {
+        outline: 3px solid #d5a62c;
+        outline-offset: 2px;
+    }
+
+    body.admin-body .product-admin-card input::placeholder,
+    body.admin-body .product-admin-card textarea::placeholder {
+        color: #87958b;
+        font-size: 13px;
+        opacity: 1;
+    }
+
+    body.admin-body.theme-dark .field-tooltip {
+        border-color: #58735f;
+        background: #293a2f;
+        color: #d0ecd7;
+    }
+
+    body.admin-body.theme-dark .product-admin-card input::placeholder,
+    body.admin-body.theme-dark .product-admin-card textarea::placeholder {
+        color: #96a79b;
+    }
+
+    body.admin-body .product-admin-card .check-row {
+        align-items: center;
+        min-height: 48px;
+        padding: 11px 12px;
+        border: 1px solid #e0e8e1;
+        border-radius: 8px;
+        background: #f7faf7;
+    }
+
+    body.admin-body .product-admin-card .check-row > label {
+        flex: 1;
+        margin: 0;
+        color: #43554a;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    body.admin-body.theme-dark .product-admin-card .check-row {
+        border-color: #3b4940;
+        background: #242d28;
+    }
+
+    body.admin-body.theme-dark .product-admin-card .check-row > label {
+        color: #d3dbd5;
+    }
+
+    @media (max-width: 760px) {
+        body.admin-body .field-tooltip::after {
+            position: fixed;
+            top: auto;
+            right: 20px;
+            bottom: 20px;
+            width: min(320px, calc(100vw - 40px));
+            transform: translateY(5px);
+        }
+
+        body.admin-body .field-tooltip:hover::after,
+        body.admin-body .field-tooltip:focus-visible::after {
+            transform: translateY(0);
+        }
+    }
+
     body.admin-body .financial-panel > .panel-heading h2 {
         font-size: 19px;
     }
