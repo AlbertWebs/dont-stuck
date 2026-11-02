@@ -31,12 +31,33 @@ class ApplicationWorkflowService
             'approved' => ['administrator', 'management'],
             'rejected' => ['administrator', 'management'],
         ],
+        'rejected' => ['under_review' => ['administrator']],
+        'cancelled' => ['under_review' => ['administrator']],
         'approved' => ['finance_processing' => ['administrator', 'finance_officer']],
         'finance_processing' => ['pending_disbursement' => ['administrator', 'finance_officer']],
         'pending_disbursement' => ['disbursed' => ['administrator', 'finance_officer']],
     ];
 
     public function __construct(private readonly AuditLogger $auditLogger) {}
+
+    /** @return array<int, string> */
+    public function availableTransitions(User $user, LoanApplication $application): array
+    {
+        $transitions = [];
+
+        foreach (self::TRANSITIONS[$application->status] ?? [] as $status => $allowedRoles) {
+            if ($status === 'disbursed') {
+                continue;
+            }
+
+            if (in_array($user->role, $allowedRoles, true)
+                && ($user->role !== 'loan_officer' || $application->assigned_user_id === $user->id)) {
+                $transitions[] = $status;
+            }
+        }
+
+        return $transitions;
+    }
 
     public function transition(LoanApplication $application, User $actor, string $toStatus, ?string $remarks, ?string $approvedAmount = null, ?int $approvedMonths = null): LoanApplication
     {

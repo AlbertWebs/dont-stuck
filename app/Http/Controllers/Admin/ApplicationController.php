@@ -9,6 +9,7 @@ use App\Models\LoanApplication;
 use App\Models\User;
 use App\Services\ApplicationWorkflowService;
 use App\Services\AuditLogger;
+use App\Services\RepaymentPerformanceService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,15 +38,22 @@ class ApplicationController extends Controller
         ]);
     }
 
-    public function show(Request $request, LoanApplication $application): View
-    {
+    public function show(
+        Request $request,
+        LoanApplication $application,
+        ApplicationWorkflowService $workflow,
+        RepaymentPerformanceService $repaymentPerformance,
+    ): View {
         $this->authorizeView($request, $application);
         $application->load(['borrower', 'product', 'assignedOfficer', 'documents', 'statusHistory.actor', 'reviews.reviewer', 'guarantors', 'collateralItems', 'loanAccount.schedules', 'loanAccount.payments.recorder', 'loanAccount.payments.allocations.schedule', 'loanAccount.disbursements.recorder', 'loanAccount.charges']);
 
         return view('admin.applications.show', [
             'application' => $application,
             'loanOfficers' => User::query()->where('role', 'loan_officer')->where('is_active', true)->orderBy('name')->get(),
-            'availableTransitions' => $this->availableTransitions($request->user(), $application),
+            'availableTransitions' => $workflow->availableTransitions($request->user(), $application),
+            'repaymentPerformance' => $application->loanAccount
+                ? $repaymentPerformance->summarize($application->loanAccount)
+                : null,
         ]);
     }
 
@@ -139,30 +147,5 @@ class ApplicationController extends Controller
         }
 
         return $query;
-    }
-
-    /** @return array<int, string> */
-    private function availableTransitions(User $user, LoanApplication $application): array
-    {
-        $roles = [
-            'submitted' => ['under_review' => ['administrator', 'loan_officer']],
-            'under_review' => ['verification_assessment' => ['administrator', 'loan_officer'], 'additional_information_required' => ['administrator', 'loan_officer'], 'on_hold' => ['administrator', 'loan_officer', 'management']],
-            'additional_information_required' => ['under_review' => ['administrator', 'loan_officer']],
-            'verification_assessment' => ['pending_approval' => ['administrator', 'loan_officer'], 'additional_information_required' => ['administrator', 'loan_officer'], 'on_hold' => ['administrator', 'loan_officer', 'management']],
-            'on_hold' => ['under_review' => ['administrator', 'loan_officer', 'management']],
-            'pending_approval' => ['approved' => ['administrator', 'management'], 'rejected' => ['administrator', 'management']],
-            'approved' => ['finance_processing' => ['administrator', 'finance_officer']],
-            'finance_processing' => ['pending_disbursement' => ['administrator', 'finance_officer']],
-            'pending_disbursement' => [],
-        ];
-        $transitions = [];
-
-        foreach ($roles[$application->status] ?? [] as $status => $allowedRoles) {
-            if (in_array($user->role, $allowedRoles, true) && ($user->role !== 'loan_officer' || $application->assigned_user_id === $user->id)) {
-                $transitions[] = $status;
-            }
-        }
-
-        return $transitions;
     }
 }

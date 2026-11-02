@@ -594,6 +594,285 @@
 }
 
 @media screen {
+    body.admin-body .financial-panel > .panel-heading h2 {
+        font-size: 19px;
+    }
+
+    body.admin-body .financial-panel > .panel-heading p {
+        font-size: 13px;
+    }
+
+    body.admin-body .account-kpis {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    body.admin-body .account-kpis > div {
+        min-height: 76px;
+        padding: 13px;
+        border: 1px solid #e4eae4;
+        background: linear-gradient(145deg, #f7faf7, #eef4ef);
+    }
+
+    body.admin-body .account-kpis small {
+        color: #627168;
+        font-size: 10px;
+        letter-spacing: 0.055em;
+    }
+
+    body.admin-body .account-kpis strong {
+        color: #20382a;
+        font-size: 15px;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+    body.admin-body .repayment-performance-card {
+        margin: 0 0 22px;
+        padding: 20px;
+        border: 1px solid #dce9df;
+        border-radius: 12px;
+        background: radial-gradient(circle at 100% 0%, #e9f4ec 0, transparent 17rem), #f8fbf8;
+    }
+
+    body.admin-body .performance-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    body.admin-body .performance-heading .eyebrow {
+        color: #50745c;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    body.admin-body .performance-heading h3 {
+        margin: 4px 0 0;
+        color: #20382a;
+        font-size: 19px;
+    }
+
+    body.admin-body .performance-rating {
+        flex: 0 0 auto;
+        padding: 7px 11px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    body.admin-body .performance-rating.tone-positive {
+        border-color: #b5d8bd;
+        background: #e2f4e5;
+        color: #245b32;
+    }
+
+    body.admin-body .performance-rating.tone-caution {
+        border-color: #eddaa2;
+        background: #fff3cd;
+        color: #735500;
+    }
+
+    body.admin-body .performance-rating.tone-concern {
+        border-color: #e7bdb6;
+        background: #fce9e5;
+        color: #812f27;
+    }
+
+    body.admin-body .performance-rating.tone-neutral {
+        border-color: #d7dfd9;
+        background: #edf1ee;
+        color: #526258;
+    }
+
+    body.admin-body .performance-summary {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-top: 17px;
+    }
+
+    body.admin-body .performance-summary > strong {
+        color: #245b3d;
+        font-size: 31px;
+        letter-spacing: -0.04em;
+    }
+
+    body.admin-body .performance-summary > span {
+        color: #53665b;
+        font-size: 13px;
+    }
+
+    body.admin-body .performance-meter {
+        height: 10px;
+        overflow: hidden;
+        margin-top: 9px;
+        border-radius: 999px;
+        background: #e3eae4;
+    }
+
+    body.admin-body .performance-meter > i {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: #4e9b67;
+        transition: width 180ms ease;
+    }
+
+    body.admin-body .performance-meter > i.tone-caution {
+        background: #d6a52d;
+    }
+
+    body.admin-body .performance-meter > i.tone-concern {
+        background: #bd5e4e;
+    }
+
+    body.admin-body .performance-facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 22px;
+        margin-top: 13px;
+    }
+
+    body.admin-body .performance-facts span {
+        color: #58685e;
+        font-size: 12px;
+    }
+
+    body.admin-body .performance-facts strong {
+        color: #263b2d;
+        font-size: 13px;
+    }
+
+    body.admin-body .performance-disclaimer,
+    body.admin-body .performance-empty {
+        margin: 14px 0 0;
+        color: #627168;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    body.admin-body .financial-table-wrap .data-table {
+        min-width: 1320px;
+    }
+
+    body.admin-body .financial-table-wrap .data-table th {
+        font-size: 10px;
+        white-space: nowrap;
+    }
+
+    body.admin-body .financial-table-wrap .data-table td {
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    body.admin-body .collateral-grid {
+        display: grid;
+        gap: 10px;
+    }
+
+    body.admin-body .collateral-grid > article {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: center;
+        gap: 15px;
+        padding: 13px 15px;
+        border: 1px solid #e4eae4;
+        border-radius: 9px;
+        background: #f8faf8;
+    }
+
+    body.admin-body .collateral-grid > article > div {
+        display: grid;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    body.admin-body .collateral-grid strong {
+        color: #273a2e;
+        font-size: 13px;
+    }
+
+    body.admin-body .collateral-grid small,
+    body.admin-body .collateral-grid > article > span {
+        color: #637168;
+        font-size: 12px;
+    }
+
+    body.admin-body.theme-dark .account-kpis > div,
+    body.admin-body.theme-dark .repayment-performance-card,
+    body.admin-body.theme-dark .collateral-grid > article {
+        border-color: #3b4940;
+        background: #242d28;
+    }
+
+    body.admin-body.theme-dark .account-kpis strong,
+    body.admin-body.theme-dark .performance-heading h3,
+    body.admin-body.theme-dark .performance-facts strong,
+    body.admin-body.theme-dark .collateral-grid strong {
+        color: #edf0eb;
+    }
+
+    body.admin-body.theme-dark .account-kpis small,
+    body.admin-body.theme-dark .performance-heading .eyebrow,
+    body.admin-body.theme-dark .performance-summary > span,
+    body.admin-body.theme-dark .performance-facts span,
+    body.admin-body.theme-dark .performance-disclaimer,
+    body.admin-body.theme-dark .performance-empty,
+    body.admin-body.theme-dark .collateral-grid small,
+    body.admin-body.theme-dark .collateral-grid > article > span {
+        color: #b3beb6;
+    }
+
+    body.admin-body.theme-dark .performance-meter {
+        background: #39443d;
+    }
+
+    @media (max-width: 900px) {
+        body.admin-body .account-kpis {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 560px) {
+        body.admin-body .account-kpis > div {
+            min-height: 68px;
+            padding: 10px;
+        }
+
+        body.admin-body .account-kpis strong {
+            font-size: 13px;
+        }
+
+        body.admin-body .repayment-performance-card {
+            padding: 15px;
+        }
+
+        body.admin-body .performance-heading h3 {
+            font-size: 17px;
+        }
+
+        body.admin-body .performance-summary {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        body.admin-body .collateral-grid > article {
+            grid-template-columns: 1fr auto;
+        }
+
+        body.admin-body .collateral-grid > article > strong {
+            grid-column: 1 / -1;
+        }
+    }
+}
+
+@media screen {
     body.admin-body .visual-panel {
         min-height: 318px;
     }

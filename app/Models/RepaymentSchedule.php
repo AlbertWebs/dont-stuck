@@ -33,4 +33,14 @@ class RepaymentSchedule extends Model
 
         return Money::fromCents(max(0, $due - $paid));
     }
+
+    public function paidAmount(): string
+    {
+        $paid = Money::toCents((string) $this->principal_paid)
+            + Money::toCents((string) $this->interest_paid)
+            + Money::toCents((string) $this->fees_paid)
+            + Money::toCents((string) $this->penalties_paid);
+
+        return Money::fromCents($paid);
+    }
 }
