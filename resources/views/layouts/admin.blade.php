@@ -4,7 +4,7 @@
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Workspace') · DSS Admin</title>
     <meta name="theme-color" content="#f4f5f2">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/admin-overrides.css', 'resources/js/app.js'])
 </head>
 <body class="admin-body">
     <a class="skip-link" href="#admin-main">Skip to content</a>
