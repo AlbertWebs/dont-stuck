@@ -1,0 +1,7 @@
+@extends('layouts.admin')
+
+@section('title', 'Overdue loans')
+@section('content')
+<div class="admin-page-heading"><div><span class="eyebrow">Collections follow-up</span><h1>Overdue installments</h1><p>Past due dates with balances still open. Default status follows each loan’s configured threshold.</p></div></div>
+<section class="panel recent-panel"><div class="table-wrap"><table class="data-table"><thead><tr><th>LOAN</th><th>BORROWER</th><th>DUE DATE</th><th>INSTALLMENT</th><th>OPEN BALANCE</th><th>ACCOUNT</th><th></th></tr></thead><tbody>@forelse ($schedules as $schedule)<tr><td>{{ $schedule->loanAccount->reference }}</td><td>{{ $schedule->loanAccount->borrower->full_name }}</td><td>{{ $schedule->due_date->format('d M Y') }}</td><td>{{ $schedule->installment_number }}</td><td>KSh {{ number_format((float) $schedule->outstandingAmount(), 2) }}</td><td><span class="status-badge status-{{ $schedule->loanAccount->status }}">{{ str_replace('_', ' ', $schedule->loanAccount->status) }}</span></td><td><a class="row-arrow" href="{{ route('admin.applications.show', $schedule->loanAccount->loan_application_id) }}" aria-label="Open loan details">→</a></td></tr>@empty<tr><td colspan="7"><div class="empty-table">There are no past due installments with outstanding balances.</div></td></tr>@endforelse</tbody></table></div><div class="pagination-wrap">{{ $schedules->links() }}</div></section>
+@endsection

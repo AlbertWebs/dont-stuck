@@ -1,0 +1,15 @@
+@extends('layouts.site')
+
+@section('title', 'Loan products')
+@section('description', 'Explore employed and refinance loan requests from Don’t Stuck Solutions. Terms are shared after assessment.')
+
+@section('content')
+<section class="page-hero"><div class="shell"><span class="eyebrow">Loan options</span><h1>Choose the conversation<br><em>that fits your plans.</em></h1><p>Start with the option that best matches your needs. Our team will review your request and discuss any terms with you before you decide.</p></div></section>
+<section class="section"><div class="shell"><div class="product-grid product-grid-wide">
+    @forelse ($products as $product)
+        <article class="product-card product-card-large"><div class="product-card-top"><span class="product-icon">{{ $loop->first ? '↗' : '↻' }}</span><span class="product-number">0{{ $loop->iteration }}</span></div><h2>{{ $product->name }}</h2><p>{{ $product->description }}</p>@if ($product->minimum_amount || $product->maximum_amount || $product->repayment_months || $product->interest_rate || $product->processing_fee_rate)<div class="product-facts product-facts-large"><strong>Configured product details</strong>@if ($product->minimum_amount || $product->maximum_amount)<span>Amount <b>@if ($product->minimum_amount)KSh {{ number_format((float) $product->minimum_amount, 0) }}@endif @if ($product->minimum_amount && $product->maximum_amount)–@endif @if ($product->maximum_amount)KSh {{ number_format((float) $product->maximum_amount, 0) }}@endif</b></span>@endif @if ($product->repayment_months)<span>Repayment period <b>Up to {{ $product->repayment_months }} months</b></span>@endif @if ($product->interest_rate)<span>Interest <b>{{ number_format((float) $product->interest_rate, 2) }}% per month · {{ str_replace('_', ' ', $product->interest_basis) }}</b></span>@endif @if ($product->processing_fee_rate)<span>Processing fee <b>{{ number_format((float) $product->processing_fee_rate, 2) }}%</b></span>@endif</div>@endif<ul class="check-list"><li>Individual application assessment</li><li>Secure document submission</li><li>Clear written terms before agreement</li></ul><div class="product-rule"></div><a class="button button-dark" href="{{ route('apply', ['product' => $product->slug]) }}">Apply for {{ $product->name }} <span aria-hidden="true">↗</span></a></article>
+    @empty
+        <div class="empty-state"><span class="product-icon">✳</span><h2>Speak with our team</h2><p>We’re here to help you find the right next step.</p><a class="button button-dark" href="{{ route('contact') }}">Get in touch</a></div>
+    @endforelse
+</div><div class="terms-note"><span class="terms-icon">i</span><p>Loan amounts, repayment periods, interest, fees and eligibility are confirmed individually. You will be able to review all terms before accepting an offer. Submitting an application does not commit you to a loan.</p></div></div></section>
+@endsection
