@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\SubmitLoanApplicationRequest;
 use App\Models\LoanProduct;
 use App\Services\LoanApplicationIntakeService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -15,9 +16,17 @@ class LoanApplicationController extends Controller
         return view('public.apply', ['products' => LoanProduct::query()->where('is_active', true)->orderBy('name')->get()]);
     }
 
-    public function store(SubmitLoanApplicationRequest $request, LoanApplicationIntakeService $intake): RedirectResponse
+    public function store(SubmitLoanApplicationRequest $request, LoanApplicationIntakeService $intake): RedirectResponse|JsonResponse
     {
         $result = $intake->submit($request->validated(), $request);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Your application has been received.',
+                'reference' => $result['reference'],
+                'confirmation_url' => route('apply.received', ['reference' => $result['reference']]),
+            ], 201);
+        }
 
         return to_route('apply.received', ['reference' => $result['reference']]);
     }

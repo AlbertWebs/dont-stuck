@@ -48,13 +48,25 @@ class SubmitLoanApplicationRequest extends FormRequest
             'collateral_items.*.serial_number' => ['nullable', 'string', 'max:160'],
             'collateral_items.*.estimated_value' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
             'documents' => ['nullable', 'array'],
-            'documents.national_id' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:8192'],
-            'documents.appointment_letter' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:8192'],
-            'documents.payslips' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:8192'],
-            'documents.bank_statement' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:8192'],
-            'documents.mpesa_statement' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:8192'],
-            'documents.guarantor_ids' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:8192'],
+            'documents.national_id' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'extensions:pdf,jpg,jpeg,png', 'max:25600'],
+            'documents.appointment_letter' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'extensions:pdf,jpg,jpeg,png', 'max:25600'],
+            'documents.payslips' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'extensions:pdf,jpg,jpeg,png', 'max:25600'],
+            'documents.bank_statement' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'extensions:pdf,jpg,jpeg,png', 'max:25600'],
+            'documents.mpesa_statement' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'extensions:pdf,jpg,jpeg,png', 'max:25600'],
+            'documents.guarantor_ids' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'extensions:pdf,jpg,jpeg,png', 'max:25600'],
             'privacy_consent' => ['accepted'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'documents.*.max' => 'Each document must be no larger than 25 MB.',
+            'documents.*.mimes' => 'Each document must be a PDF, JPG or PNG file.',
+            'documents.*.extensions' => 'Each document must use a PDF, JPG or PNG filename extension.',
         ];
     }
 

@@ -120,9 +120,152 @@ document.addEventListener('DOMContentLoaded', () => {
             render();
             stepForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
-        stepForm.addEventListener('submit', (event) => {
-            if (!validateCurrentStep()) {
-                event.preventDefault();
+        const feedback = stepForm.querySelector('[data-application-feedback]');
+        const fileInputs = [...stepForm.querySelectorAll('[data-document-upload]')];
+        const navigationButtons = [back, next, submit];
+        const maximumDocumentSize = 25 * 1024 * 1024;
+        const submitLabel = submit.innerHTML;
+        let isSubmitting = false;
+
+        const showFeedback = (message, state) => {
+            feedback.className = `application-feedback is-${state}`;
+            feedback.setAttribute('role', state === 'error' ? 'alert' : 'status');
+            feedback.textContent = message;
+            feedback.hidden = false;
+        };
+
+        const clearServerErrors = () => {
+            stepForm.querySelectorAll('.application-ajax-error').forEach((error) => error.remove());
+            stepForm.querySelectorAll('[aria-invalid="true"]').forEach((control) => control.removeAttribute('aria-invalid'));
+        };
+
+        const displayServerErrors = (errors) => {
+            const normalizeFieldName = (name) => name.replace(/[\[\]]/g, '.').replace(/\.+/g, '.').replace(/^\.|\.$/g, '');
+            let firstInvalid = null;
+
+            Object.entries(errors).forEach(([name, messages]) => {
+                const control = [...stepForm.elements].find((element) => element.name && normalizeFieldName(element.name) === name);
+                const container = control?.closest('.field, .upload-field, .check-row');
+                const message = Array.isArray(messages) ? messages[0] : String(messages);
+
+                if (control) {
+                    control.setAttribute('aria-invalid', 'true');
+                    firstInvalid ??= control;
+                }
+
+                if (container) {
+                    const error = document.createElement('small');
+                    error.className = 'field-error application-ajax-error';
+                    error.textContent = message;
+                    container.append(error);
+                }
+            });
+
+            if (firstInvalid) {
+                const invalidStep = steps.indexOf(firstInvalid.closest('[data-step]'));
+                if (invalidStep >= 0) {
+                    current = invalidStep;
+                    render();
+                    firstInvalid.focus();
+                }
+            }
+        };
+
+        fileInputs.forEach((input) => {
+            input.addEventListener('change', () => {
+                const file = input.files?.[0];
+                const extension = file?.name.split('.').pop()?.toLowerCase();
+                let errorMessage = '';
+
+                if (file && file.size > maximumDocumentSize) {
+                    errorMessage = 'Each document must be no larger than 25 MB.';
+                } else if (file && !['pdf', 'jpg', 'jpeg', 'png'].includes(extension)) {
+                    errorMessage = 'Choose a PDF, JPG or PNG file.';
+                }
+
+                input.setCustomValidity(errorMessage);
+                if (!errorMessage) {
+                    input.removeAttribute('aria-invalid');
+                    input.closest('.upload-field')?.querySelector('.application-ajax-error')?.remove();
+                }
+            });
+        });
+
+        stepForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            if (isSubmitting || !validateCurrentStep()) {
+                return;
+            }
+
+            clearServerErrors();
+            feedback.hidden = true;
+            isSubmitting = true;
+            stepForm.setAttribute('aria-busy', 'true');
+            navigationButtons.forEach((button) => {
+                button.disabled = true;
+            });
+            submit.textContent = 'Submitting…';
+            let applicationSubmitted = false;
+
+            try {
+                const response = await fetch(stepForm.action, {
+                    method: 'POST',
+                    body: new FormData(stepForm),
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+                const result = await response.json().catch(() => ({}));
+
+                if (response.status === 422) {
+                    showFeedback(result.message || 'Please review the highlighted fields and try again.', 'error');
+                    displayServerErrors(result.errors || {});
+                    return;
+                }
+
+                if (response.status === 413) {
+                    showFeedback('The upload is too large. Keep each document below 25 MB and try again.', 'error');
+                    return;
+                }
+
+                if (!response.ok || !result.reference) {
+                    showFeedback(result.message || 'We could not submit your application. Please try again.', 'error');
+                    return;
+                }
+
+                applicationSubmitted = true;
+                stepForm.querySelector('.form-progress').hidden = true;
+                steps.forEach((step) => {
+                    step.hidden = true;
+                });
+                stepForm.querySelector('.form-navigation').hidden = true;
+                feedback.className = 'application-feedback is-success';
+                feedback.setAttribute('role', 'status');
+                feedback.replaceChildren();
+
+                const heading = document.createElement('strong');
+                heading.textContent = result.message || 'Your application has been received.';
+                const reference = document.createElement('span');
+                reference.textContent = `Application reference: ${result.reference}`;
+                const confirmationLink = document.createElement('a');
+                confirmationLink.href = result.confirmation_url;
+                confirmationLink.textContent = 'View confirmation';
+                feedback.append(heading, reference, confirmationLink);
+                feedback.hidden = false;
+            } catch {
+                showFeedback('We could not reach the server. Check your connection and try again.', 'error');
+            } finally {
+                isSubmitting = false;
+                stepForm.removeAttribute('aria-busy');
+
+                if (!applicationSubmitted) {
+                    navigationButtons.forEach((button) => {
+                        button.disabled = false;
+                    });
+                    submit.innerHTML = submitLabel;
+                }
             }
         });
         render();

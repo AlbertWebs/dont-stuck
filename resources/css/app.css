@@ -139,3 +139,23 @@ body.admin-body.theme-dark .account-kpis>div,body.admin-body.theme-dark .approva
         transform: translateY(2px);
     }
 }
+
+.application-feedback {
+    display: grid;
+    gap: 7px;
+    margin: 0 0 18px;
+    padding: 15px 17px;
+    border: 1px solid;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+.application-feedback[hidden] { display: none !important; }
+.application-feedback.is-error { border-color: #f0c6bf; background: #fff3f0; color: #8d3028; }
+.application-feedback.is-success { border-color: #c4ddca; background: #edf6ef; color: #245c36; }
+.application-feedback.is-success strong { font-size: 16px; }
+.application-feedback.is-success a { width: fit-content; margin-top: 3px; color: inherit; font-weight: 750; text-decoration: underline; }
+.application-form[aria-busy="true"] { cursor: progress; }
+.application-form button:disabled { cursor: wait; opacity: .7; }
+body.theme-dark .application-feedback.is-error { border-color: #69413b; background: #392622; color: #ffccc3; }
+body.theme-dark .application-feedback.is-success { border-color: #45624d; background: #293a2f; color: #c1e5cb; }
