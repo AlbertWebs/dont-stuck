@@ -105,3 +105,37 @@ body.admin-body.theme-dark .account-kpis>div,body.admin-body.theme-dark .approva
     .hero-photo-caption { left: 15px; bottom: 15px; padding: 11px 13px; }
     .hero-photo-caption strong { font-size: 12px; }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+    @view-transition {
+        navigation: auto;
+    }
+
+    ::view-transition-old(root) {
+        animation: dss-page-out 140ms ease-in both;
+    }
+
+    ::view-transition-new(root) {
+        animation: dss-page-in 180ms ease-out both;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    @view-transition {
+        navigation: none;
+    }
+}
+
+@keyframes dss-page-out {
+    to {
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+}
+
+@keyframes dss-page-in {
+    from {
+        opacity: 0;
+        transform: translateY(2px);
+    }
+}
