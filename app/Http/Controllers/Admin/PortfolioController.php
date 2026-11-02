@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Borrower;
 use App\Models\LoanAccount;
-use App\Models\Payment;
 use App\Models\RepaymentSchedule;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -25,13 +26,35 @@ class PortfolioController extends Controller
 
     public function repayments(Request $request): View
     {
-        $query = Payment::query()->with(['loanAccount.borrower', 'loanAccount.application']);
+        $paymentVisibility = function (Builder|HasMany $payments) use ($request): void {
+            if ($request->user()->role === 'loan_officer') {
+                $payments->whereHas('loanAccount.application', fn (Builder $applications) => $applications->where('assigned_user_id', $request->user()->id));
+            }
+        };
 
-        if ($request->user()->role === 'loan_officer') {
-            $query->whereHas('loanAccount.application', fn (Builder $applications) => $applications->where('assigned_user_id', $request->user()->id));
-        }
+        $borrowers = Borrower::query()
+            ->whereHas('loanAccounts.payments', $paymentVisibility)
+            ->with(['loanAccounts' => function (HasMany $accounts) use ($paymentVisibility): void {
+                $accounts->whereHas('payments', $paymentVisibility)
+                    ->with(['payments' => function (HasMany $payments) use ($paymentVisibility): void {
+                        $paymentVisibility($payments);
+                        $payments->latest('paid_on')->latest('id');
+                    }]);
+            }])
+            ->orderBy('full_name')
+            ->paginate(15)
+            ->through(function (Borrower $borrower): array {
+                $payments = $borrower->loanAccounts->flatMap(fn (LoanAccount $account) => $account->payments);
 
-        return view('admin.repayments', ['payments' => $query->latest('paid_on')->paginate(20)->withQueryString()]);
+                return [
+                    'borrower' => $borrower,
+                    'loan_accounts' => $borrower->loanAccounts,
+                    'receipt_count' => $payments->count(),
+                    'posted_total' => (float) $payments->where('status', 'posted')->sum('amount'),
+                ];
+            });
+
+        return view('admin.repayments', ['borrowers' => $borrowers]);
     }
 
     public function overdue(Request $request): View

@@ -594,6 +594,147 @@
 }
 
 @media screen {
+    body.admin-body .repayment-borrower-list {
+        display: grid;
+        gap: 16px;
+    }
+
+    body.admin-body .borrower-ledger-card {
+        overflow: hidden;
+        padding: 0;
+    }
+
+    body.admin-body .borrower-ledger-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 19px 22px;
+        background: var(--admin-surface-soft);
+    }
+
+    body.admin-body .borrower-ledger-identity {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    body.admin-body .borrower-ledger-avatar {
+        display: grid;
+        flex: 0 0 42px;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        border: 1px solid #d6e5d9;
+        border-radius: 50%;
+        background: #e6f0e8;
+        color: #245b3d;
+        font-size: 17px;
+        font-weight: 800;
+    }
+
+    body.admin-body .borrower-ledger-identity h2 {
+        margin: 0;
+        color: var(--admin-text);
+        font-size: 17px;
+    }
+
+    body.admin-body .borrower-ledger-identity p {
+        margin: 4px 0 0;
+        color: var(--admin-muted);
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
+
+    body.admin-body .borrower-ledger-summary {
+        display: flex;
+        gap: 24px;
+        flex: 0 0 auto;
+    }
+
+    body.admin-body .borrower-ledger-summary > div {
+        display: grid;
+        gap: 3px;
+        text-align: right;
+    }
+
+    body.admin-body .borrower-ledger-summary small {
+        color: var(--admin-muted);
+        font-size: 10px;
+        font-weight: 750;
+        letter-spacing: 0.08em;
+    }
+
+    body.admin-body .borrower-ledger-summary strong {
+        color: var(--admin-text);
+        font-size: 14px;
+    }
+
+    body.admin-body .borrower-loan-group {
+        padding: 17px 22px 20px;
+        border-top: 1px solid var(--admin-line);
+    }
+
+    body.admin-body .borrower-loan-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    body.admin-body .borrower-loan-heading > div {
+        display: grid;
+        gap: 3px;
+    }
+
+    body.admin-body .borrower-loan-heading > div > span {
+        color: var(--admin-muted);
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+    }
+
+    body.admin-body .borrower-loan-heading > div > strong {
+        color: var(--admin-text);
+        font-size: 13px;
+    }
+
+    body.admin-body .borrower-payment-table-wrap .data-table {
+        min-width: 690px;
+    }
+
+    body.admin-body.theme-dark .borrower-ledger-avatar {
+        border-color: #45624d;
+        background: #293a2f;
+        color: #c1e5cb;
+    }
+
+    @media (max-width: 760px) {
+        body.admin-body .borrower-ledger-heading {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 16px;
+        }
+
+        body.admin-body .borrower-ledger-summary {
+            width: 100%;
+            justify-content: space-between;
+            padding-left: 54px;
+        }
+
+        body.admin-body .borrower-ledger-summary > div {
+            text-align: left;
+        }
+
+        body.admin-body .borrower-loan-group {
+            padding: 15px 16px 17px;
+        }
+    }
+}
+
+@media screen {
     body.admin-body .admin-profile-shortcut {
         color: var(--admin-green-bright);
         font-size: 13px;
