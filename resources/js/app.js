@@ -366,6 +366,64 @@ document.addEventListener('DOMContentLoaded', () => {
         const maximumDocumentSize = 25 * 1024 * 1024;
         const submitLabel = submit.innerHTML;
         let isSubmitting = false;
+        let submissionProgressTimer = null;
+        const submissionProgress = stepForm.querySelector('[data-submission-progress]');
+        const submissionProgressTitle = stepForm.querySelector('[data-submission-progress-title]');
+        const submissionProgressSummary = stepForm.querySelector('[data-submission-progress-summary]');
+        const submissionStages = [...stepForm.querySelectorAll('[data-submission-stage]')];
+
+        const setSubmissionProgressStage = (activeIndex) => {
+            submissionStages.forEach((stage, index) => {
+                const status = stage.querySelector('[data-submission-stage-status]');
+                stage.classList.toggle('is-active', index === activeIndex);
+                stage.classList.toggle('is-complete', index < activeIndex);
+                stage.classList.toggle('is-pending', index > activeIndex);
+                stage.setAttribute('aria-current', index === activeIndex ? 'step' : 'false');
+                status.textContent = index < activeIndex ? 'Done' : index === activeIndex ? 'In progress' : 'Waiting';
+            });
+            if (submissionProgressSummary && activeIndex >= 0 && submissionStages[activeIndex]) {
+                submissionProgressSummary.textContent = `Step ${activeIndex + 1} of ${submissionStages.length}: ${submissionStages[activeIndex].querySelector('strong').textContent}`;
+            }
+        };
+
+        const startSubmissionProgress = () => {
+            submissionProgress.hidden = false;
+            submissionProgress.classList.add('is-processing');
+            submissionProgressTitle.textContent = 'Submitting your application';
+            submissionStages.forEach((stage) => stage.classList.add('is-pending'));
+            setSubmissionProgressStage(0);
+            let activeIndex = 0;
+            submissionProgressTimer = window.setInterval(() => {
+                activeIndex = Math.min(activeIndex + 1, submissionStages.length - 1);
+                setSubmissionProgressStage(activeIndex);
+            }, 1400);
+        };
+
+        const finishSubmissionProgress = () => {
+            window.clearInterval(submissionProgressTimer);
+            submissionProgressTimer = null;
+            submissionStages.forEach((stage) => {
+                stage.classList.remove('is-active', 'is-pending');
+                stage.classList.add('is-complete');
+                stage.setAttribute('aria-current', 'false');
+                stage.querySelector('[data-submission-stage-status]').textContent = 'Done';
+            });
+            submissionProgressTitle.textContent = 'Application submitted';
+            submissionProgressSummary.textContent = 'All submission steps are complete.';
+            submissionProgress.classList.remove('is-processing');
+        };
+
+        const resetSubmissionProgress = () => {
+            window.clearInterval(submissionProgressTimer);
+            submissionProgressTimer = null;
+            submissionProgress.hidden = true;
+            submissionProgress.classList.remove('is-processing');
+            submissionStages.forEach((stage) => {
+                stage.classList.remove('is-active', 'is-complete', 'is-pending');
+                stage.setAttribute('aria-current', 'false');
+                stage.querySelector('[data-submission-stage-status]').textContent = 'Waiting';
+            });
+        };
 
         const showFeedback = (message, state) => {
             feedback.className = `application-feedback is-${state}`;
@@ -449,6 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearServerErrors();
             feedback.hidden = true;
             isSubmitting = true;
+            startSubmissionProgress();
             stepForm.setAttribute('aria-busy', 'true');
             navigationButtons.forEach((button) => {
                 button.disabled = true;
@@ -468,22 +527,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json().catch(() => ({}));
 
                 if (response.status === 422) {
+                    resetSubmissionProgress();
                     showFeedback(`${result.message || 'Please review the highlighted fields and try again.'} Your entries and selected documents are still here.`, 'error');
                     displayServerErrors(result.errors || {});
                     return;
                 }
 
                 if (response.status === 413) {
+                    resetSubmissionProgress();
                     showFeedback('The upload is too large. Keep each document below 25 MB and try again. Your entries and selected documents are still here.', 'error');
                     return;
                 }
 
                 if (!response.ok || !result.reference) {
+                    resetSubmissionProgress();
                     showFeedback(`${result.message || 'We could not submit your application. Please try again.'} Your entries and selected documents are still here.`, 'error');
                     return;
                 }
 
                 applicationSubmitted = true;
+                finishSubmissionProgress();
                 stepForm.querySelector('.form-progress').hidden = true;
                 steps.forEach((step) => {
                     step.hidden = true;
@@ -507,6 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 feedback.append(confirmationLink);
                 feedback.hidden = false;
             } catch {
+                resetSubmissionProgress();
                 showFeedback('We could not reach the server. Check your connection and try again. Your entries and selected documents are still here.', 'error');
             } finally {
                 isSubmitting = false;

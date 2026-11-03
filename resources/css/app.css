@@ -163,6 +163,28 @@ body.admin-body.theme-dark .account-kpis>div,body.admin-body.theme-dark .approva
 .application-feedback.is-success { border-color: #c4ddca; background: #edf6ef; color: #245c36; }
 .application-feedback.is-success strong { font-size: 16px; }
 .application-feedback.is-success a { width: fit-content; margin-top: 3px; color: inherit; font-weight: 750; text-decoration: underline; }
+.application-submit-progress { margin: 0 0 18px; padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: 0 12px 32px rgba(20, 28, 24, .06); }
+.application-submit-progress[hidden] { display: none !important; }
+.application-submit-progress-heading { display: grid; gap: 5px; }
+.application-submit-progress-heading .eyebrow { margin: 0; color: var(--brand); font-size: 9px; font-weight: 800; letter-spacing: .12em; }
+.application-submit-progress-heading strong { color: var(--ink); font: 700 20px var(--font-display); }
+.application-submit-progress-heading p { margin: 0; color: var(--muted); font-size: 12px; }
+.application-submit-stages { display: grid; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; }
+.application-submit-stages li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 11px; min-height: 55px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); }
+.application-submit-stage-marker { display: grid; width: 27px; height: 27px; place-items: center; border-radius: 50%; background: var(--surface-soft); color: var(--muted); font-size: 11px; font-weight: 800; }
+.application-submit-stages li > span:nth-child(2) { display: grid; gap: 2px; }
+.application-submit-stages strong { color: var(--ink); font-size: 12px; }
+.application-submit-stages li small { font-size: 10px; line-height: 1.4; }
+.application-submit-stages li [data-submission-stage-status] { white-space: nowrap; }
+.application-submit-stages li.is-active { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 5%, var(--surface)); }
+.application-submit-stages li.is-active .application-submit-stage-marker { background: var(--brand); color: #fff; animation: application-stage-pulse 1.25s ease-in-out infinite; }
+.application-submit-stages li.is-active [data-submission-stage-status] { color: var(--brand); font-weight: 800; }
+.application-submit-stages li.is-complete .application-submit-stage-marker { background: var(--sun); color: var(--ink); }
+.application-submit-stages li.is-complete [data-submission-stage-status] { color: #287145; font-weight: 750; }
+.application-submit-progress.is-processing .application-submit-stages li.is-pending { opacity: .62; }
+body.theme-dark .application-submit-stages li.is-complete [data-submission-stage-status] { color: #a9deb9; }
+@keyframes application-stage-pulse { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--brand) 13%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .application-submit-stages li.is-active .application-submit-stage-marker { animation: none; } }
 .application-form[aria-busy="true"] { cursor: progress; }
 .application-form button:disabled { cursor: wait; opacity: .7; }
 body.theme-dark .application-feedback.is-error { border-color: #69413b; background: #392622; color: #ffccc3; }
