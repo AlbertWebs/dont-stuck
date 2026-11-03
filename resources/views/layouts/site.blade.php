@@ -25,7 +25,7 @@
                 <span class="brand-icon-frame" aria-hidden="true"><img class="brand-icon" src="{{ asset('images/dss-emblem.png') }}" alt="" width="1774" height="887"></span>
                 <span class="brand-copy"><small>ENRICHING LIVES</small><strong>DON'T STUCK SOLUTIONS</strong></span>
             </a>
-            <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-navigation" data-menu-toggle>Menu <span aria-hidden="true">☰</span></button>
+            <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="site-navigation" data-menu-toggle><span class="menu-toggle-icon" aria-hidden="true"><i></i><i></i><i></i></span></button>
             <nav class="site-nav" id="site-navigation" data-menu>
                 <a href="{{ route('home') }}" @if(request()->routeIs('home')) aria-current="page" @endif>Home</a>
                 <a href="{{ route('products') }}" @if(request()->routeIs('products')) aria-current="page" @endif>Loans</a>
