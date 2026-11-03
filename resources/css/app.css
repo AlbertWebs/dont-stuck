@@ -197,3 +197,15 @@ body.theme-dark .payment-summary { background: #202724; border-color: #39413c; }
 body.theme-dark .payment-installment-list li { background: #151a18; }
 body.admin-body.theme-dark .admin-payment-summary .payment-installment-list li { background: #29302c; }
 @media (max-width: 760px) { .payment-summary { padding: 15px; } .payment-summary-heading { align-items: flex-start; flex-direction: column; gap: 5px; } .payment-summary-totals, .admin-payment-summary .payment-summary-totals, .loan-terms-settings-fields { grid-template-columns: 1fr; } .payment-installment-list li { align-items: flex-start; flex-direction: column; gap: 4px; } .loan-terms-settings-panel { padding: 16px; } .loan-terms-settings-footer { align-items: flex-start; flex-direction: column; } }
+
+.employed-application-form .employed-step-labels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;overflow:visible;margin:14px 0 0;padding:0;list-style:none}
+.employed-application-form .employed-step-labels [data-step-label]{display:flex;align-items:flex-start;gap:8px;min-width:0;padding:10px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--muted);font-size:11px;font-weight:600;line-height:1.35;white-space:normal}
+.employed-step-labels .step-number{display:grid;place-items:center;flex:0 0 23px;width:23px;height:23px;border-radius:50%;background:var(--surface-soft);color:var(--muted);font-size:10px;font-weight:800}
+.employed-step-labels .step-label-text{padding-top:3px}
+.employed-step-labels [data-step-label].is-current{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 6%,var(--surface));color:var(--ink);font-weight:750;box-shadow:0 0 0 1px color-mix(in srgb,var(--brand) 10%,transparent)}
+.employed-step-labels [data-step-label].is-current .step-number{background:var(--brand);color:#fff}
+.employed-step-labels [data-step-label].is-complete .step-number{background:var(--mint);color:#21633a;font-size:0}
+.employed-step-labels [data-step-label].is-complete .step-number::after{content:'✓';font-size:12px}
+body.theme-dark .employed-step-labels [data-step-label].is-current{background:#352629}
+body.theme-dark .employed-step-labels [data-step-label].is-complete .step-number{background:#243b2b;color:#b7e1c1}
+@media(max-width:760px){.employed-application-form .employed-step-labels{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.employed-application-form .employed-step-labels [data-step-label]{min-height:48px;padding:9px;font-size:11px}}

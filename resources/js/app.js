@@ -231,6 +231,11 @@ document.addEventListener('DOMContentLoaded', () => {
             labels.forEach((label, index) => {
                 label.classList.toggle('is-current', index === current);
                 label.classList.toggle('is-complete', index < current);
+                if (index === current) {
+                    label.setAttribute('aria-current', 'step');
+                } else {
+                    label.removeAttribute('aria-current');
+                }
             });
             count.textContent = `Step ${current + 1} of ${steps.length}`;
             progress.style.width = `${((current + 1) / steps.length) * 100}%`;
