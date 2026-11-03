@@ -77,7 +77,130 @@ document.addEventListener('DOMContentLoaded', () => {
         const submit = stepForm.querySelector('[data-step-submit]');
         const count = stepForm.querySelector('[data-step-count]');
         const progress = stepForm.querySelector('[data-progress-bar]');
+        const paymentSummary = stepForm.querySelector('[data-payment-summary]');
+        const summaryMessage = paymentSummary?.querySelector('[data-payment-summary-message]');
+        const summaryMethod = paymentSummary?.querySelector('[data-payment-summary-method]');
+        const summaryBody = paymentSummary?.querySelector('[data-payment-summary-body]');
+        const loanProductInput = stepForm.querySelector('[name="loan_product_id"]');
+        const requestedAmountInput = stepForm.querySelector('[name="requested_amount"]');
+        const requestedMonthsInput = stepForm.querySelector('[name="requested_months"]');
         let current = 0;
+        let quoteRequestId = 0;
+        let quoteAbortController = null;
+        let quoteDebounce;
+        let quoteIsReady = false;
+
+        const formatMoney = (amount) => `KSh ${Number(amount).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+        const updatePaymentSummary = async () => {
+            if (!paymentSummary || !loanProductInput.value || !requestedAmountInput.value || !requestedMonthsInput.value) {
+                quoteIsReady = false;
+                if (summaryMessage) {
+                    summaryMessage.textContent = 'Complete the loan amount and repayment period to see an estimate.';
+                }
+                if (summaryMethod) {
+                    summaryMethod.textContent = 'Awaiting loan details';
+                }
+                if (summaryBody) {
+                    summaryBody.replaceChildren();
+                    summaryBody.hidden = true;
+                }
+
+                return;
+            }
+
+            quoteAbortController?.abort();
+            quoteAbortController = new AbortController();
+            const requestId = ++quoteRequestId;
+            quoteIsReady = false;
+            summaryMessage.textContent = 'Calculating your estimated payments…';
+
+            const quoteUrl = new URL(stepForm.dataset.quoteUrl, window.location.origin);
+            quoteUrl.search = new URLSearchParams({
+                loan_product_id: loanProductInput.value,
+                requested_amount: requestedAmountInput.value,
+                requested_months: requestedMonthsInput.value,
+            }).toString();
+
+            try {
+                const response = await fetch(quoteUrl, {
+                    headers: { Accept: 'application/json' },
+                    signal: quoteAbortController.signal,
+                });
+                const result = await response.json().catch(() => ({}));
+
+                if (requestId !== quoteRequestId) {
+                    return;
+                }
+
+                if (!response.ok) {
+                    const firstError = Object.values(result.errors || {}).flat()[0];
+                    summaryMethod.textContent = 'Estimate unavailable';
+                    summaryMessage.textContent = firstError || 'We could not calculate this estimate. Check the amount, product and term.';
+                    summaryBody.replaceChildren();
+                    summaryBody.hidden = true;
+
+                    return;
+                }
+
+                const totals = [
+                    ['Approved principal requested', result.principal],
+                    ['Interest over the loan term', result.total_interest],
+                    ['Processing fee withheld', result.processing_fee],
+                    ['Legal fee withheld', result.legal_fee],
+                    ['Estimated payout after fees', result.net_disbursement],
+                    ['Total scheduled repayment', result.total_repayment],
+                    ['Total interest and fees', result.total_cost],
+                ];
+                const totalsGrid = document.createElement('dl');
+                totalsGrid.className = 'payment-summary-totals';
+                totals.forEach(([label, amount]) => {
+                    const row = document.createElement('div');
+                    const term = document.createElement('dt');
+                    const value = document.createElement('dd');
+                    term.textContent = label;
+                    value.textContent = formatMoney(amount);
+                    row.append(term, value);
+                    totalsGrid.append(row);
+                });
+
+                const installmentsHeading = document.createElement('h3');
+                installmentsHeading.textContent = 'Estimated monthly installments';
+                const installmentList = document.createElement('ol');
+                installmentList.className = 'payment-installment-list';
+                result.installments.forEach((installment) => {
+                    const item = document.createElement('li');
+                    const label = document.createElement('span');
+                    const amount = document.createElement('strong');
+                    label.textContent = `Installment ${installment.number} · Principal ${formatMoney(installment.principal)} + interest ${formatMoney(installment.interest)}`;
+                    amount.textContent = formatMoney(installment.total);
+                    item.append(label, amount);
+                    installmentList.append(item);
+                });
+
+                const methodLabel = result.interest_basis === 'flat_monthly_equal_principal' ? 'Flat monthly' : 'Reducing balance';
+                summaryMethod.textContent = `${result.interest_rate}% monthly · ${methodLabel}`;
+                summaryMessage.textContent = 'Estimate based on current system settings. Late charges are not included; the final written offer is subject to review.';
+                summaryBody.replaceChildren(totalsGrid, installmentsHeading, installmentList);
+                summaryBody.hidden = false;
+                quoteIsReady = true;
+            } catch (error) {
+                if (error.name !== 'AbortError' && requestId === quoteRequestId) {
+                    summaryMethod.textContent = 'Estimate unavailable';
+                    summaryMessage.textContent = 'Payment estimates are temporarily unavailable. Your application details will remain here if you continue.';
+                    summaryBody.replaceChildren();
+                    summaryBody.hidden = true;
+                }
+            }
+        };
+
+        const syncFixedRepaymentTerm = () => {
+            const fixedMonths = loanProductInput.selectedOptions[0]?.dataset.fixedMonths || '';
+            requestedMonthsInput.readOnly = Boolean(fixedMonths);
+            if (fixedMonths) {
+                requestedMonthsInput.value = fixedMonths;
+            }
+        };
 
         const render = () => {
             steps.forEach((step, index) => {
@@ -93,7 +216,22 @@ document.addEventListener('DOMContentLoaded', () => {
             back.hidden = current === 0;
             next.hidden = current === steps.length - 1;
             submit.hidden = current !== steps.length - 1;
+            if (current === steps.length - 1) {
+                updatePaymentSummary();
+            }
         };
+
+        const schedulePaymentSummaryUpdate = () => {
+            window.clearTimeout(quoteDebounce);
+            quoteDebounce = window.setTimeout(updatePaymentSummary, 250);
+        };
+
+        loanProductInput.addEventListener('change', () => {
+            syncFixedRepaymentTerm();
+            schedulePaymentSummaryUpdate();
+        });
+        requestedAmountInput.addEventListener('input', schedulePaymentSummaryUpdate);
+        requestedMonthsInput.addEventListener('input', schedulePaymentSummaryUpdate);
 
         const validateCurrentStep = () => {
             const controls = [...steps[current].querySelectorAll('input, select, textarea')].filter((control) => !control.disabled);
@@ -102,6 +240,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (invalid) {
                 invalid.reportValidity();
                 invalid.focus();
+                return false;
+            }
+
+            if (current === steps.length - 1 && !quoteIsReady) {
+                showFeedback('Wait for the payment summary to finish calculating before submitting.', 'error');
+                updatePaymentSummary();
+
                 return false;
             }
 
@@ -252,7 +397,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const confirmationLink = document.createElement('a');
                 confirmationLink.href = result.confirmation_url;
                 confirmationLink.textContent = 'View confirmation';
-                feedback.append(heading, reference, confirmationLink);
+                feedback.append(heading, reference);
+                if (paymentSummary?.querySelector('[data-payment-summary-body]:not([hidden])')) {
+                    feedback.append(paymentSummary.cloneNode(true));
+                }
+                feedback.append(confirmationLink);
                 feedback.hidden = false;
             } catch {
                 showFeedback('We could not reach the server. Check your connection and try again. Your entries and selected documents are still here.', 'error');
@@ -268,6 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+        syncFixedRepaymentTerm();
         render();
     }
 

@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\ApplicationDocument;
 use App\Models\ApplicationReview;
 use App\Models\LoanApplication;
+use App\Models\LoanTermsSetting;
 use App\Models\User;
 use App\Services\ApplicationWorkflowService;
 use App\Services\AuditLogger;
+use App\Services\LoanRepaymentCalculator;
 use App\Services\RepaymentPerformanceService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -43,9 +45,17 @@ class ApplicationController extends Controller
         LoanApplication $application,
         ApplicationWorkflowService $workflow,
         RepaymentPerformanceService $repaymentPerformance,
+        LoanRepaymentCalculator $repaymentCalculator,
     ): View {
         $this->authorizeView($request, $application);
         $application->load(['borrower', 'product', 'assignedOfficer', 'documents', 'statusHistory.actor', 'reviews.reviewer', 'guarantors', 'collateralItems', 'loanAccount.schedules', 'loanAccount.payments.recorder', 'loanAccount.payments.allocations.schedule', 'loanAccount.disbursements.recorder', 'loanAccount.charges']);
+        $paymentSummary = null;
+        $estimatedMonths = $application->approved_months ?? $application->requested_months ?? $application->product->repayment_months;
+        $estimatedAmount = $application->approved_amount ?? $application->requested_amount;
+
+        if (! $application->loanAccount && $estimatedMonths !== null && $estimatedMonths >= 1 && $estimatedMonths <= 3) {
+            $paymentSummary = $repaymentCalculator->calculate((string) $estimatedAmount, (int) $estimatedMonths, LoanTermsSetting::query()->findOrFail(1));
+        }
 
         return view('admin.applications.show', [
             'application' => $application,
@@ -54,6 +64,7 @@ class ApplicationController extends Controller
             'repaymentPerformance' => $application->loanAccount
                 ? $repaymentPerformance->summarize($application->loanAccount)
                 : null,
+            'paymentSummary' => $paymentSummary,
         ]);
     }
 

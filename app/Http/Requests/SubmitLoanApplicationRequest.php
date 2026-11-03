@@ -32,7 +32,7 @@ class SubmitLoanApplicationRequest extends FormRequest
             'next_of_kin_relation' => ['required', 'string', 'max:80'],
             'next_of_kin_phone' => ['required', 'string', 'max:32'],
             'requested_amount' => ['required', 'numeric', 'decimal:0,2', 'gt:0', 'max:9999999999'],
-            'requested_months' => ['nullable', 'integer', 'between:1,3'],
+            'requested_months' => ['required', 'integer', 'between:1,3'],
             'purpose' => ['required', 'string', 'min:10', 'max:2000'],
             'applicant_notes' => ['nullable', 'string', 'max:2000'],
             'guarantors' => ['required', 'array', 'size:2'],
@@ -92,6 +92,10 @@ class SubmitLoanApplicationRequest extends FormRequest
 
             if (! $product) {
                 return;
+            }
+
+            if ($product->repayment_months !== null && (int) $this->input('requested_months') !== $product->repayment_months) {
+                $validator->errors()->add('requested_months', 'Choose the repayment period configured for this loan option.');
             }
 
             if ($product->repayment_months !== null && ! in_array((int) $product->repayment_months, [1, 2, 3], true)) {

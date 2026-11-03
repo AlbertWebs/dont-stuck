@@ -20,6 +20,7 @@
                 <a href="{{ route('admin.repayments.index') }}" @if(request()->routeIs('admin.repayments.*')) class="is-active" @endif><span>↙</span>Repayments</a>
                 <a href="{{ route('admin.overdue.index') }}" @if(request()->routeIs('admin.overdue.*')) class="is-active" @endif><span>◷</span>Overdue loans</a>
                 @if (auth()->user()->role === 'administrator')<a href="{{ route('admin.products.index') }}" @if(request()->routeIs('admin.products.*')) class="is-active" @endif><span>▦</span>Loan products</a>@endif
+                @if (auth()->user()->role === 'administrator')<a href="{{ route('admin.loan-terms.edit') }}" @if(request()->routeIs('admin.loan-terms.*')) class="is-active" @endif><span>⚙</span>System loan terms</a>@endif
                 @if (auth()->user()->role === 'administrator')<a href="{{ route('admin.website-pages.index') }}" @if(request()->routeIs('admin.website-pages.*')) class="is-active" @endif><span>▧</span>Website content</a>@endif
                 @if (auth()->user()->role === 'administrator')<a href="{{ route('admin.users.index') }}" @if(request()->routeIs('admin.users.*')) class="is-active" @endif><span>♧</span>Users & roles</a>@endif
                 <a href="{{ route('admin.reports') }}" @if(request()->routeIs('admin.reports*')) class="is-active" @endif><span>▥</span>Reports</a>

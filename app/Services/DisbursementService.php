@@ -8,6 +8,7 @@ use App\Models\LoanAccount;
 use App\Models\LoanApplication;
 use App\Models\LoanCharge;
 use App\Models\LoanProduct;
+use App\Models\LoanTermsSetting;
 use App\Models\RepaymentSchedule;
 use App\Models\User;
 use App\Support\Money;
@@ -20,7 +21,10 @@ use Illuminate\Validation\ValidationException;
 
 class DisbursementService
 {
-    public function __construct(private readonly AuditLogger $auditLogger) {}
+    public function __construct(
+        private readonly AuditLogger $auditLogger,
+        private readonly LoanRepaymentCalculator $repaymentCalculator,
+    ) {}
 
     /**
      * @param  array{disbursed_on: string, first_repayment_due_on: string, method: string, provider_reference?: ?string, notes?: ?string}  $data
@@ -60,10 +64,11 @@ class DisbursementService
                 throw ValidationException::withMessages(['application' => 'The approved repayment period must match the configured product term.']);
             }
 
-            $processingFeeCents = Money::percentage($principalCents, (string) $product->processing_fee_rate);
-            $commissioningFeeCents = Money::toCents((string) $product->commissioning_fee);
-            $totalFeesCents = $processingFeeCents + $commissioningFeeCents;
-            $feesWithheldCents = $product->fee_collection_method === 'deducted_from_disbursement' ? $totalFeesCents : 0;
+            $settings = LoanTermsSetting::query()->lockForUpdate()->findOrFail(1);
+            $paymentSummary = $this->repaymentCalculator->calculate((string) $lockedApplication->approved_amount, (int) $lockedApplication->approved_months, $settings);
+            $processingFeeCents = Money::toCents($paymentSummary['processing_fee']);
+            $commissioningFeeCents = Money::toCents($paymentSummary['legal_fee']);
+            $feesWithheldCents = Money::toCents($paymentSummary['fees_withheld']);
             $netDisbursementCents = $principalCents - $feesWithheldCents;
 
             if ($netDisbursementCents <= 0) {
@@ -83,53 +88,40 @@ class DisbursementService
                 'borrower_id' => $lockedApplication->borrower_id,
                 'principal_amount' => Money::fromCents($principalCents),
                 'disbursed_amount' => Money::fromCents($netDisbursementCents),
-                'interest_rate' => $product->interest_rate,
-                'interest_basis' => $product->interest_basis,
+                'interest_rate' => $settings->interest_rate,
+                'interest_basis' => $settings->interest_basis,
                 'processing_fee' => Money::fromCents($processingFeeCents),
                 'commissioning_fee' => Money::fromCents($commissioningFeeCents),
                 'daily_late_fee' => $product->daily_late_fee,
                 'late_penalty_start' => $product->late_penalty_start,
                 'allocation_order' => $product->allocation_order,
-                'fee_collection_method' => $product->fee_collection_method,
+                'fee_collection_method' => 'deducted_from_disbursement',
                 'default_threshold_days' => $product->default_threshold_days,
                 'term_months' => $lockedApplication->approved_months,
                 'disbursed_at' => $disbursementDate->toDateString(),
                 'status' => 'active',
             ]);
 
-            $outstandingPrincipalCents = $principalCents;
-            $baseInstallmentPrincipalCents = intdiv($principalCents, $lockedApplication->approved_months);
             $lastDueDate = $firstDueDate;
 
-            for ($installment = 1; $installment <= $lockedApplication->approved_months; $installment++) {
-                $installmentPrincipalCents = $installment === $lockedApplication->approved_months
-                    ? $outstandingPrincipalCents
-                    : $baseInstallmentPrincipalCents;
-                $interestBaseCents = $product->interest_basis === 'flat_monthly_equal_principal'
-                    ? $principalCents
-                    : $outstandingPrincipalCents;
-                $interestCents = Money::percentage($interestBaseCents, (string) $product->interest_rate);
-                $feesDueCents = $installment === 1 && $product->fee_collection_method === 'first_installment'
-                    ? $totalFeesCents
-                    : 0;
-                $dueDate = $firstDueDate->addMonthsNoOverflow($installment - 1);
+            foreach ($paymentSummary['installments'] as $installment) {
+                $dueDate = $firstDueDate->addMonthsNoOverflow($installment['number'] - 1);
 
                 $schedule = RepaymentSchedule::create([
                     'loan_account_id' => $account->id,
-                    'installment_number' => $installment,
+                    'installment_number' => $installment['number'],
                     'due_date' => $dueDate->toDateString(),
-                    'principal_due' => Money::fromCents($installmentPrincipalCents),
-                    'interest_due' => Money::fromCents($interestCents),
-                    'fees_due' => Money::fromCents($feesDueCents),
+                    'principal_due' => $installment['principal'],
+                    'interest_due' => $installment['interest'],
+                    'fees_due' => '0.00',
                     'status' => 'pending',
                 ]);
 
-                if ($installment === 1) {
+                if ($installment['number'] === 1) {
                     $this->recordFeeCharge($account, $schedule, 'processing_fee', $processingFeeCents, $disbursementDate, $actor, $feesWithheldCents > 0);
                     $this->recordFeeCharge($account, $schedule, 'commissioning_fee', $commissioningFeeCents, $disbursementDate, $actor, $feesWithheldCents > 0);
                 }
 
-                $outstandingPrincipalCents -= $installmentPrincipalCents;
                 $lastDueDate = $dueDate;
             }
 
@@ -179,19 +171,14 @@ class DisbursementService
     private function ensureProductTermsAreComplete(LoanProduct $product): void
     {
         $requiredFields = [
-            'interest_rate',
-            'interest_basis',
-            'processing_fee_rate',
-            'commissioning_fee',
             'daily_late_fee',
             'late_penalty_start',
             'allocation_order',
-            'fee_collection_method',
         ];
         $missingFields = array_filter($requiredFields, fn (string $field): bool => $product->{$field} === null);
 
         if ($missingFields !== []) {
-            throw ValidationException::withMessages(['application' => 'Configure the product interest, fee, penalty and allocation rules before disbursement.']);
+            throw ValidationException::withMessages(['application' => 'Configure the product late-fee and payment-allocation rules before disbursement.']);
         }
     }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ContactEnquiry;
 use App\Models\LoanProduct;
+use App\Models\LoanTermsSetting;
 use App\Services\WebsitePageCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,7 @@ class PublicSiteController extends Controller
     {
         return view('public.home', [
             'products' => LoanProduct::query()->where('is_active', true)->where(fn ($query) => $query->whereNull('repayment_months')->orWhereBetween('repayment_months', [1, 3]))->orderBy('name')->get(),
+            'loanTermsSetting' => LoanTermsSetting::query()->findOrFail(1),
             'pageContent' => $pages->publicContent('home'),
         ]);
     }
@@ -26,7 +28,10 @@ class PublicSiteController extends Controller
 
     public function products(): View
     {
-        return view('public.products', ['products' => LoanProduct::query()->where('is_active', true)->where(fn ($query) => $query->whereNull('repayment_months')->orWhereBetween('repayment_months', [1, 3]))->orderBy('name')->get()]);
+        return view('public.products', [
+            'products' => LoanProduct::query()->where('is_active', true)->where(fn ($query) => $query->whereNull('repayment_months')->orWhereBetween('repayment_months', [1, 3]))->orderBy('name')->get(),
+            'loanTermsSetting' => LoanTermsSetting::query()->findOrFail(1),
+        ]);
     }
 
     public function contact(WebsitePageCatalog $pages): View

@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\BorrowerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DisbursementController;
 use App\Http\Controllers\Admin\LoanProductController;
+use App\Http\Controllers\Admin\LoanTermsSettingController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\PortfolioController;
 use App\Http\Controllers\Admin\ProfileController as AdminProfileController;
@@ -29,6 +30,7 @@ Route::get('/contact', [PublicSiteController::class, 'contact'])->name('contact'
 Route::get('/sitemap.xml', fn () => response()->view('public.sitemap')->header('Content-Type', 'application/xml'))->name('sitemap');
 Route::get('/robots.txt', fn () => response("User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /client/\nDisallow: /login\n\nSitemap: ".route('sitemap')."\n", 200, ['Content-Type' => 'text/plain']))->name('robots');
 Route::post('/contact', [PublicSiteController::class, 'submitContact'])->middleware('throttle:contact')->name('contact.submit');
+Route::get('/apply/quote', [LoanApplicationController::class, 'quote'])->name('apply.quote');
 Route::get('/apply', [LoanApplicationController::class, 'create'])->name('apply');
 Route::post('/apply', [LoanApplicationController::class, 'store'])->middleware('throttle:loan-applications')->name('apply.store');
 Route::get('/application-received/{reference}', [LoanApplicationController::class, 'received'])
@@ -84,6 +86,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active'])->group(fu
     Route::get('/overdue', [PortfolioController::class, 'overdue'])->name('overdue.index');
     Route::get('/products', [LoanProductController::class, 'index'])->name('products.index');
     Route::put('/products/{product}', [LoanProductController::class, 'update'])->name('products.update');
+    Route::get('/loan-terms', [LoanTermsSettingController::class, 'edit'])->name('loan-terms.edit');
+    Route::put('/loan-terms', [LoanTermsSettingController::class, 'update'])->name('loan-terms.update');
     Route::get('/website-content', [WebsitePageController::class, 'index'])->name('website-pages.index');
     Route::put('/website-content/{pageSlug}', [WebsitePageController::class, 'update'])->name('website-pages.update');
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
