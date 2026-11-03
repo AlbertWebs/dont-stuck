@@ -209,3 +209,45 @@ body.admin-body.theme-dark .admin-payment-summary .payment-installment-list li {
 body.theme-dark .employed-step-labels [data-step-label].is-current{background:#352629}
 body.theme-dark .employed-step-labels [data-step-label].is-complete .step-number{background:#243b2b;color:#b7e1c1}
 @media(max-width:760px){.employed-application-form .employed-step-labels{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.employed-application-form .employed-step-labels [data-step-label]{min-height:48px;padding:9px;font-size:11px}}
+
+@media(max-width:760px){
+    .apply-section{padding:22px 0 56px}
+    .apply-layout{gap:18px}
+    .page-hero-compact{padding-block:42px 32px}
+    .page-hero h1{font-size:clamp(2.2rem,10vw,3.1rem)}
+    .page-hero p{font-size:14px;line-height:1.6}
+    .application-form{min-width:0;padding:16px;border-radius:13px}
+    .form-progress-head{align-items:flex-start;gap:10px;font-size:11px}
+    .form-progress-head [data-step-count]{white-space:nowrap}
+    .employed-application-form .employed-step-labels{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+    .employed-application-form .employed-step-labels [data-step-label]{min-height:48px;padding:8px;font-size:10px}
+    .employed-step-labels .step-number{flex-basis:21px;width:21px;height:21px}
+    .form-step legend{max-width:100%;font-size:clamp(18px,5.5vw,21px);line-height:1.25}
+    .form-step .form-intro{font-size:12px;line-height:1.55}
+    .employed-application-form .field label{font-size:12px;line-height:1.4}
+    .employed-application-form .field small{font-size:11px;line-height:1.45}
+    .form-step .field-grid{grid-template-columns:minmax(0,1fr);gap:12px}
+    .form-step .field-full{grid-column:auto}
+    .employed-application-form .field input,.employed-application-form .field select,.employed-application-form .field textarea{min-width:0;min-height:50px;font-size:16px}
+    .employed-application-form .field textarea{min-height:120px}
+    .employed-application-form .collateral-schedule{grid-template-columns:minmax(0,1fr);gap:0}
+    .employed-application-form .collateral-schedule .field-grid{grid-template-columns:minmax(0,1fr);gap:10px}
+    .employed-application-form .collateral-schedule .collateral-entry{padding:12px}
+    .employed-upload-grid{grid-template-columns:minmax(0,1fr)}
+    .employed-upload-grid .upload-field label{min-height:88px;padding:13px}
+    .employed-upload-grid .upload-field label strong{font-size:12px;line-height:1.4}
+    .employed-upload-grid .upload-field label small{font-size:11px;line-height:1.45}
+    .employed-consent-row,.agreement-checklist .check-row{align-items:flex-start;gap:10px;font-size:12px;line-height:1.5}
+    .employed-consent-row input,.agreement-checklist .check-row input{flex:0 0 20px;width:20px;height:20px;margin-top:1px}
+    .form-navigation{flex-wrap:wrap;gap:8px;margin-top:18px;padding-top:14px}
+    .form-navigation .button{min-height:48px;padding-inline:14px;font-size:12px}
+    .payment-summary{min-width:0;overflow-wrap:anywhere}
+    .agreement-clauses{padding:13px}
+    .agreement-clauses p{font-size:12px;line-height:1.6}
+}
+@media(max-width:380px){
+    .application-form{padding:13px}
+    .employed-application-form .employed-step-labels [data-step-label]{gap:6px;padding:7px;font-size:10px}
+    .employed-step-labels .step-number{flex-basis:19px;width:19px;height:19px;font-size:10px}
+    .form-navigation .button{padding-inline:11px;font-size:11px}
+}
