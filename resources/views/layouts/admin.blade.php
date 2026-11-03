@@ -15,7 +15,7 @@
             <nav class="admin-nav" aria-label="Main navigation">
                 <a href="{{ route('admin.dashboard') }}" @if(request()->routeIs('admin.dashboard')) class="is-active" @endif><span>◫</span>Overview</a>
                 <a href="{{ route('admin.applications.index') }}" @if(request()->routeIs('admin.applications.*')) class="is-active" @endif><span>▤</span>Applications</a>
-                <a href="{{ route('admin.borrowers.index') }}" @if(request()->routeIs('admin.borrowers.*')) class="is-active" @endif><span>♙</span>Borrowers</a>
+                <a href="{{ route('admin.clients.index') }}" @if(request()->routeIs('admin.clients.*')) class="is-active" @endif><span>♙</span>Client records</a>
                 <a href="{{ route('admin.loans.index') }}" @if(request()->routeIs('admin.loans.*')) class="is-active" @endif><span>◉</span>Active loans</a>
                 <a href="{{ route('admin.repayments.index') }}" @if(request()->routeIs('admin.repayments.*')) class="is-active" @endif><span>↙</span>Repayments</a>
                 <a href="{{ route('admin.overdue.index') }}" @if(request()->routeIs('admin.overdue.*')) class="is-active" @endif><span>◷</span>Overdue loans</a>

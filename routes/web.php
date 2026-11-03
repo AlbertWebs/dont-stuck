@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ApplicationController as AdminApplicationController;
 use App\Http\Controllers\Admin\BorrowerController;
+use App\Http\Controllers\Admin\ClientRecordController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DisbursementController;
 use App\Http\Controllers\Admin\LoanProductController;
@@ -81,6 +82,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active'])->group(fu
     Route::post('/loans/{loanAccount}/payments', [PaymentController::class, 'store'])->name('payments.store');
     Route::post('/payments/{payment}/reverse', [PaymentController::class, 'reverse'])->name('payments.reverse');
     Route::get('/borrowers', [BorrowerController::class, 'index'])->name('borrowers.index');
+    Route::get('/clients', [ClientRecordController::class, 'index'])->name('clients.index');
+    Route::get('/clients/{borrower}', [ClientRecordController::class, 'show'])->name('clients.show');
+    Route::get('/clients/{borrower}/export', [ClientRecordController::class, 'export'])->name('clients.export');
     Route::get('/loans', [PortfolioController::class, 'loans'])->name('loans.index');
     Route::get('/repayments', [PortfolioController::class, 'repayments'])->name('repayments.index');
     Route::get('/overdue', [PortfolioController::class, 'overdue'])->name('overdue.index');

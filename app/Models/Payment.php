@@ -29,4 +29,9 @@ class Payment extends Model
     {
         return $this->belongsTo(User::class, 'recorded_by');
     }
+
+    public function reversedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reversed_by');
+    }
 }

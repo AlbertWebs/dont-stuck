@@ -13,4 +13,9 @@ class ApplicationDocument extends Model
     {
         return $this->belongsTo(LoanApplication::class, 'loan_application_id');
     }
+
+    public function uploadedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'uploaded_by');
+    }
 }
