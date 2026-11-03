@@ -10,8 +10,8 @@ use App\Models\LoanAccount;
 use App\Models\LoanApplication;
 use App\Models\Payment;
 use App\Services\AuditLogger;
+use App\Services\ClientRecordPdfExporter;
 use App\Services\ExcelXmlExporter;
-use App\Services\PdfReportExporter;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -118,17 +118,17 @@ class ClientRecordController extends Controller
         return $exporter->downloadWorkbook('client-record-'.str($borrower->full_name)->slug().'-'.today()->toDateString().'.xls', $sheets);
     }
 
-    public function pdf(Request $request, Borrower $borrower, PdfReportExporter $exporter, AuditLogger $auditLogger): StreamedResponse
+    public function pdf(Request $request, Borrower $borrower, ClientRecordPdfExporter $exporter, AuditLogger $auditLogger): StreamedResponse
     {
         $this->authorizeBorrower($request, $borrower);
         $sheets = $this->clientRecordSheets($request, $borrower, $auditLogger, 'pdf');
 
         return $exporter->download(
             'client-record-'.str($borrower->full_name)->slug().'-'.today()->toDateString().'.pdf',
-            'Client record - '.$borrower->full_name,
-            'National ID: '.$borrower->national_id.' | Phone: '.$borrower->phone.' | Generated '.now()->format('d M Y H:i'),
-            ['Client record detail'],
-            $this->clientRecordPdfRows($sheets),
+            $borrower->full_name,
+            (string) $borrower->national_id,
+            (string) $borrower->phone,
+            $sheets,
         );
     }
 
@@ -214,37 +214,6 @@ class ClientRecordController extends Controller
             'Supporting records' => ['headers' => ['Application reference', 'Record type', 'Name / description', 'Identifier / details', 'Phone / quantity', 'Relationship / type', 'Value (KSh)', 'Date / uploaded by'], 'rows' => $this->supportingRows($applications)],
             'Activity log' => ['headers' => ['Date', 'Action', 'Related record', 'Staff member', 'Details'], 'rows' => $activity->map(fn (AuditLog $log): array => [$log->created_at?->toDateTimeString(), $log->action, class_basename((string) $log->subject_type).' #'.$log->subject_id, $log->actor?->name ?? 'Online / system', json_encode($log->metadata, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: ''])],
         ];
-    }
-
-    /** @param array<string, array{headers: array<int, string>, rows: Collection<int, array<int, int|float|string|null>>}> $sheets
-     * @return Collection<int, array<int, int|float|string|null>>
-     */
-    private function clientRecordPdfRows(array $sheets): Collection
-    {
-        return collect($sheets)->flatMap(function (array $sheet, string $section): Collection {
-            $rows = collect([["SECTION: {$section}"]]);
-            $rows->push([implode(' | ', $sheet['headers'])]);
-
-            if ($sheet['rows']->isEmpty()) {
-                $rows->push(['No records in this section.']);
-
-                return $rows;
-            }
-
-            foreach ($sheet['rows'] as $row) {
-                $values = [];
-                foreach ($sheet['headers'] as $index => $header) {
-                    $value = $row[$index] ?? null;
-                    if ($value !== null && $value !== '') {
-                        $values[] = $header.': '.$value;
-                    }
-                }
-
-                $rows->push([implode(' | ', $values) ?: 'No details recorded.']);
-            }
-
-            return $rows;
-        })->values();
     }
 
     /** @param Collection<int, LoanApplication> $applications
