@@ -11,6 +11,7 @@ use App\Models\LoanApplication;
 use App\Models\Payment;
 use App\Services\AuditLogger;
 use App\Services\ExcelXmlExporter;
+use App\Services\PdfReportExporter;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -112,6 +113,30 @@ class ClientRecordController extends Controller
     public function export(Request $request, Borrower $borrower, ExcelXmlExporter $exporter, AuditLogger $auditLogger): StreamedResponse
     {
         $this->authorizeBorrower($request, $borrower);
+        $sheets = $this->clientRecordSheets($request, $borrower, $auditLogger, 'excel_xml_workbook');
+
+        return $exporter->downloadWorkbook('client-record-'.str($borrower->full_name)->slug().'-'.today()->toDateString().'.xls', $sheets);
+    }
+
+    public function pdf(Request $request, Borrower $borrower, PdfReportExporter $exporter, AuditLogger $auditLogger): StreamedResponse
+    {
+        $this->authorizeBorrower($request, $borrower);
+        $sheets = $this->clientRecordSheets($request, $borrower, $auditLogger, 'pdf');
+
+        return $exporter->download(
+            'client-record-'.str($borrower->full_name)->slug().'-'.today()->toDateString().'.pdf',
+            'Client record - '.$borrower->full_name,
+            'National ID: '.$borrower->national_id.' | Phone: '.$borrower->phone.' | Generated '.now()->format('d M Y H:i'),
+            ['Client record detail'],
+            $this->clientRecordPdfRows($sheets),
+        );
+    }
+
+    /**
+     * @return array<string, array{headers: array<int, string>, rows: Collection<int, array<int, int|float|string|null>>}>
+     */
+    private function clientRecordSheets(Request $request, Borrower $borrower, AuditLogger $auditLogger, string $format): array
+    {
         $borrower->load([
             'applications.product',
             'applications.assignedOfficer',
@@ -144,7 +169,7 @@ class ClientRecordController extends Controller
         $auditLogger->record($request->user(), 'client_record.exported', $borrower, [
             'application_count' => $applications->count(),
             'loan_count' => $loanAccounts->count(),
-            'format' => 'excel_xml_workbook',
+            'format' => $format,
         ], $request);
 
         $activity = AuditLog::query()
@@ -160,7 +185,7 @@ class ClientRecordController extends Controller
             ->oldest()
             ->get();
 
-        $sheets = [
+        return [
             'Client profile' => [
                 'headers' => ['Field', 'Information'],
                 'rows' => collect([
@@ -176,7 +201,7 @@ class ClientRecordController extends Controller
             'Borrower agreements' => ['headers' => ['Application reference', 'Signed by', 'Signed at', 'Amount requested in words', 'Total repayment (KSh)', 'Total repayment in words', 'Interest rate monthly', 'Interest method', 'Processing fee rate', 'Processing fee (KSh)', 'Legal fee (KSh)', 'Net payout (KSh)', 'Late penalty per day (KSh)', 'Debt agreed', 'Salary remedy agreed', 'Continued interest agreed', 'Fees agreed', 'Late penalty agreed'], 'rows' => $applications->filter(fn ($application): bool => ! empty($application->application_data['agreement']))->map(function ($application): array {
                 $agreement = $application->application_data['agreement'];
 
-                return [$application->reference, $agreement['borrower_signature'] ?? null, $agreement['signed_at'] ?? null, $agreement['requested_amount_words'] ?? null, $agreement['total_repayment_amount'] ?? null, $agreement['total_repayment_words'] ?? null, $agreement['interest_rate_monthly'] ?? null, $agreement['interest_basis'] ?? null, $agreement['processing_fee_rate'] ?? null, $agreement['processing_fee_amount'] ?? null, $agreement['legal_fee_amount'] ?? null, $agreement['net_disbursement'] ?? null, $agreement['daily_late_penalty'] ?? null, $agreement['debt_acknowledged'] ? 'Yes' : 'No', $agreement['salary_remedy_acknowledged'] ? 'Yes' : 'No', $agreement['continued_interest_acknowledged'] ? 'Yes' : 'No', $agreement['processing_fee_acknowledged'] ? 'Yes' : 'No', $agreement['late_penalty_acknowledged'] ? 'Yes' : 'No'];
+                return [$application->reference, $agreement['borrower_signature'] ?? null, $agreement['signed_at'] ?? null, $agreement['requested_amount_words'] ?? null, $agreement['total_repayment_amount'] ?? null, $agreement['total_repayment_words'] ?? null, $agreement['interest_rate_monthly'] ?? null, $agreement['interest_basis'] ?? null, $agreement['processing_fee_rate'] ?? null, $agreement['processing_fee_amount'] ?? null, $agreement['legal_fee_amount'] ?? null, $agreement['net_disbursement'] ?? null, $agreement['daily_late_penalty'] ?? null, ! empty($agreement['debt_acknowledged']) ? 'Yes' : 'No', ! empty($agreement['salary_remedy_acknowledged']) ? 'Yes' : 'No', ! empty($agreement['continued_interest_acknowledged']) ? 'Yes' : 'No', ! empty($agreement['processing_fee_acknowledged']) ? 'Yes' : 'No', ! empty($agreement['late_penalty_acknowledged']) ? 'Yes' : 'No'];
             })],
             'Application history' => ['headers' => ['Application reference', 'Record type', 'Date', 'From status', 'To status / recommendation', 'Officer', 'Details'], 'rows' => $this->applicationHistoryRows($applications)],
             'Loans' => ['headers' => ['Loan reference', 'Application reference', 'Status', 'Principal (KSh)', 'Net disbursed (KSh)', 'Interest rate % monthly', 'Interest method', 'Processing fee (KSh)', 'Legal fee (KSh)', 'Term months', 'Disbursed', 'Maturity', 'Outstanding (KSh)'], 'rows' => $loanAccounts->map(fn (LoanAccount $loan): array => [$loan->reference, $loan->application->reference, $loan->status, $loan->principal_amount, $loan->disbursed_amount, $loan->interest_rate, $loan->interest_basis, $loan->processing_fee, $loan->commissioning_fee, $loan->term_months, $loan->disbursed_at?->toDateString(), $loan->maturity_date?->toDateString(), $loan->outstandingBalance()])],
@@ -189,8 +214,37 @@ class ClientRecordController extends Controller
             'Supporting records' => ['headers' => ['Application reference', 'Record type', 'Name / description', 'Identifier / details', 'Phone / quantity', 'Relationship / type', 'Value (KSh)', 'Date / uploaded by'], 'rows' => $this->supportingRows($applications)],
             'Activity log' => ['headers' => ['Date', 'Action', 'Related record', 'Staff member', 'Details'], 'rows' => $activity->map(fn (AuditLog $log): array => [$log->created_at?->toDateTimeString(), $log->action, class_basename((string) $log->subject_type).' #'.$log->subject_id, $log->actor?->name ?? 'Online / system', json_encode($log->metadata, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: ''])],
         ];
+    }
 
-        return $exporter->downloadWorkbook('client-record-'.str($borrower->full_name)->slug().'-'.today()->toDateString().'.xls', $sheets);
+    /** @param array<string, array{headers: array<int, string>, rows: Collection<int, array<int, int|float|string|null>>}> $sheets
+     * @return Collection<int, array<int, int|float|string|null>>
+     */
+    private function clientRecordPdfRows(array $sheets): Collection
+    {
+        return collect($sheets)->flatMap(function (array $sheet, string $section): Collection {
+            $rows = collect([["SECTION: {$section}"]]);
+            $rows->push([implode(' | ', $sheet['headers'])]);
+
+            if ($sheet['rows']->isEmpty()) {
+                $rows->push(['No records in this section.']);
+
+                return $rows;
+            }
+
+            foreach ($sheet['rows'] as $row) {
+                $values = [];
+                foreach ($sheet['headers'] as $index => $header) {
+                    $value = $row[$index] ?? null;
+                    if ($value !== null && $value !== '') {
+                        $values[] = $header.': '.$value;
+                    }
+                }
+
+                $rows->push([implode(' | ', $values) ?: 'No details recorded.']);
+            }
+
+            return $rows;
+        })->values();
     }
 
     /** @param Collection<int, LoanApplication> $applications

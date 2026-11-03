@@ -3,9 +3,9 @@
 @section('title', 'Client record')
 @section('content')
 <div class="detail-back"><a href="{{ route('admin.clients.index') }}">← Client records</a><span>·</span><span>{{ $borrower->national_id }}</span></div>
-<div class="detail-heading client-record-heading"><div><span class="eyebrow">Complete borrower file</span><h1>{{ $borrower->full_name }}</h1><p>{{ $borrower->phone }} · {{ $borrower->email ?: 'Email not provided' }} · Client since {{ $borrower->created_at->format('d M Y') }}</p></div><a class="button button-dark" href="{{ route('admin.clients.export', $borrower) }}"><span aria-hidden="true">⇩</span> Export bank workbook</a></div>
+<div class="detail-heading client-record-heading"><div><span class="eyebrow">Complete borrower file</span><h1>{{ $borrower->full_name }}</h1><p><span>{{ $borrower->phone }}</span><span>{{ $borrower->email ?: 'Email not provided' }}</span><span>Client since {{ $borrower->created_at->format('d M Y') }}</span></p></div><div class="client-record-actions" role="group" aria-label="Export client report"><a class="button button-outline-dark" href="{{ route('admin.clients.export.pdf', $borrower) }}"><span aria-hidden="true">▧</span> Download PDF</a><a class="button button-dark" href="{{ route('admin.clients.export', $borrower) }}"><span aria-hidden="true">▤</span> Export to Excel</a></div></div>
 
-<div class="client-record-kpis">
+<div class="client-record-kpis" id="client-overview">
     <article class="kpi-card"><div class="kpi-top"><span>Applications</span><span class="kpi-icon kpi-blue">▤</span></div><strong>{{ $applications->count() }}</strong><small>All submitted requests</small></article>
     <article class="kpi-card"><div class="kpi-top"><span>Loan accounts</span><span class="kpi-icon kpi-green">◉</span></div><strong>{{ $loanAccounts->count() }}</strong><small>Disbursed and open accounts</small></article>
     <article class="kpi-card"><div class="kpi-top"><span>Total disbursed</span><span class="kpi-icon kpi-amber">↗</span></div><strong>KSh {{ number_format((float) $totals['disbursed'], 2) }}</strong><small>Net payout to client</small></article>
@@ -13,14 +13,16 @@
     <article class="kpi-card"><div class="kpi-top"><span>Outstanding</span><span class="kpi-icon kpi-violet">◷</span></div><strong>KSh {{ number_format((float) $totals['outstanding'], 2) }}</strong><small>Across all loan schedules</small></article>
 </div>
 
+<nav class="client-record-nav" aria-label="Client record sections"><a href="#client-profile">Profile</a><a href="#client-applications">Applications</a><a href="#client-loans">Loans & installments</a><a href="#client-financial-history">Financial history</a><a href="#client-supporting-records">Documents & security</a><a href="#client-activity">Activity</a></nav>
+
 <div class="client-record-grid">
-    <section class="panel client-profile-panel"><div class="panel-heading"><div><h2>Client information</h2><p>Identity, contact, employment and next of kin</p></div></div><div class="client-profile-grid">
+    <section class="panel client-profile-panel" id="client-profile"><div class="panel-heading"><div><h2>Client information</h2><p>Identity, contact, employment and next of kin</p></div></div><div class="client-profile-grid">
         <div><small>NATIONAL ID</small><strong>{{ $borrower->national_id }}</strong></div><div><small>PHONE</small><strong>{{ $borrower->phone }}</strong></div><div><small>EMAIL</small><strong>{{ $borrower->email ?: 'Not provided' }}</strong></div><div><small>RESIDENCE</small><strong>{{ $borrower->residence ?: 'Not provided' }}</strong></div>
         <div><small>EMPLOYER</small><strong>{{ $borrower->employer ?: 'Not provided' }}</strong></div><div><small>EMPLOYER LOCATION</small><strong>{{ $borrower->employer_location ?: 'Not provided' }}</strong></div><div><small>JOB TITLE</small><strong>{{ $borrower->job_title ?: 'Not provided' }}</strong></div><div><small>NET MONTHLY SALARY</small><strong>{{ $borrower->net_salary ? 'KSh '.number_format((float) $borrower->net_salary, 2) : 'Not provided' }}</strong></div>
         <div><small>NEXT OF KIN</small><strong>{{ $borrower->next_of_kin_name ?: 'Not provided' }}</strong></div><div><small>NEXT OF KIN ID</small><strong>{{ $borrower->next_of_kin_id ?: 'Not provided' }}</strong></div><div><small>RELATIONSHIP</small><strong>{{ $borrower->next_of_kin_relation ?: 'Not provided' }}</strong></div><div><small>NEXT OF KIN PHONE</small><strong>{{ $borrower->next_of_kin_phone ?: 'Not provided' }}</strong></div>
     </div></section>
 
-    <section class="panel client-applications-panel"><div class="panel-heading"><div><h2>Applications & decisions</h2><p>Requests, approvals and review history</p></div></div>
+    <section class="panel client-applications-panel" id="client-applications"><div class="panel-heading"><div><h2>Applications & decisions</h2><p>Requests, approvals and review history</p></div></div>
         @forelse ($applications as $application)
             <article class="client-application-card"><div class="client-record-row-heading"><div><a href="{{ route('admin.applications.show', $application) }}"><strong>{{ $application->reference }}</strong></a><small>{{ $application->product->name }} · Submitted {{ $application->created_at->format('d M Y') }}</small></div><span class="status-badge status-{{ $application->status }}">{{ str_replace('_', ' ', ucfirst($application->status)) }}</span></div>
                 <div class="client-application-facts"><span>Requested<strong>KSh {{ number_format((float) $application->requested_amount, 2) }} · {{ $application->requested_months ?: '—' }} mo.</strong></span><span>Approved<strong>{{ $application->approved_amount ? 'KSh '.number_format((float) $application->approved_amount, 2).' · '.$application->approved_months.' mo.' : 'No approval recorded' }}</strong></span><span>Officer<strong>{{ $application->assignedOfficer?->name ?? 'Unassigned' }}</strong></span></div>
@@ -45,7 +47,7 @@
         @endforelse
     </section>
 
-    <section class="panel client-loans-panel"><div class="panel-heading"><div><h2>Loans & installments</h2><p>Account terms, repayment status and balances</p></div></div>
+    <section class="panel client-loans-panel" id="client-loans"><div class="panel-heading"><div><h2>Loans & installments</h2><p>Account terms, repayment status and balances</p></div></div>
         @forelse ($loanAccounts as $loan)
             <article class="client-loan-card"><div class="client-record-row-heading"><div><strong>{{ $loan->reference }}</strong><small>{{ $loan->application->product->name }} · {{ $loan->term_months }} months · Matures {{ $loan->maturity_date?->format('d M Y') ?? 'Not set' }}</small></div><span class="status-badge status-{{ $loan->status }}">{{ str_replace('_', ' ', ucfirst($loan->status)) }}</span></div>
                 <div class="client-loan-facts"><span>Principal<strong>KSh {{ number_format((float) $loan->principal_amount, 2) }}</strong></span><span>Net payout<strong>KSh {{ number_format((float) $loan->disbursed_amount, 2) }}</strong></span><span>Outstanding<strong>KSh {{ number_format((float) $loan->outstandingBalance(), 2) }}</strong></span><span>Interest<strong>{{ number_format((float) $loan->interest_rate, 2) }}% monthly · {{ str_replace('_', ' ', $loan->interest_basis) }}</strong></span></div>
@@ -58,7 +60,7 @@
         @endforelse
     </section>
 
-    <section class="panel client-payments-panel"><div class="panel-heading"><div><h2>Financial history</h2><p>Disbursements, receipts, allocations and charges</p></div></div>
+    <section class="panel client-payments-panel" id="client-financial-history"><div class="panel-heading"><div><h2>Financial history</h2><p>Disbursements, receipts, allocations and charges</p></div></div>
         @forelse ($loanAccounts as $loan)
             <div class="client-finance-group"><h3>{{ $loan->reference }} · {{ $loan->status }}</h3>
                 @foreach ($loan->disbursements as $disbursement)<article class="client-finance-entry"><div><strong>Disbursement · KSh {{ number_format((float) $disbursement->amount, 2) }}</strong><small>{{ $disbursement->disbursed_on->format('d M Y') }} · {{ str_replace('_', ' ', $disbursement->method) }} · Recorded by {{ $disbursement->recorder?->name ?? 'Staff' }}</small></div><span>Gross KSh {{ number_format((float) $disbursement->gross_amount, 2) }} · Fees withheld KSh {{ number_format((float) $disbursement->fees_withheld, 2) }}</span></article>@endforeach
@@ -72,7 +74,7 @@
         @endforelse
     </section>
 
-    <section class="panel client-support-panel"><div class="panel-heading"><div><h2>Supporting records</h2><p>Secure documents, guarantors and collateral</p></div></div>
+    <section class="panel client-support-panel" id="client-supporting-records"><div class="panel-heading"><div><h2>Supporting records</h2><p>Secure documents, guarantors and collateral</p></div></div>
         @foreach ($applications as $application)
             <div class="client-support-group"><h3>{{ $application->reference }}</h3>
                 @forelse ($application->documents as $document)<a class="client-document-entry" href="{{ route('admin.documents.show', $document) }}"><span><strong>{{ str_replace('_', ' ', ucfirst($document->document_type)) }} · {{ $document->original_name }}</strong><small>{{ $document->mime_type }} · {{ number_format($document->size_bytes / 1024) }} KB · {{ $document->created_at->format('d M Y') }} · Uploaded by {{ $document->uploadedBy?->name ?? 'Client' }}</small></span><span>Download ↓</span></a>@empty<p class="empty-inline">No documents uploaded.</p>@endforelse
@@ -82,7 +84,7 @@
         @endforeach
     </section>
 
-    <section class="panel client-activity-panel"><div class="panel-heading"><div><h2>Activity log</h2><p>Recorded actions across the borrower, applications, loans and payments</p></div><span class="count-pill">{{ $activity->count() }}</span></div>
+    <section class="panel client-activity-panel" id="client-activity"><div class="panel-heading"><div><h2>Activity log</h2><p>Recorded actions across the borrower, applications, loans and payments</p></div><span class="count-pill">{{ $activity->count() }}</span></div>
         <div class="client-activity-list">@forelse ($activity as $log)<article><span class="client-activity-dot"></span><div><strong>{{ str_replace(['.', '_'], ' ', ucfirst($log->action)) }}</strong><small>{{ $log->created_at->format('d M Y · H:i') }} · {{ $log->actor?->name ?? 'Online / system' }} · {{ class_basename((string) $log->subject_type) }} #{{ $log->subject_id }}</small>@if ($log->metadata)<p>{{ json_encode($log->metadata, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</p>@endif</div></article>@empty<div class="empty-table">No audit events are recorded for this client yet.</div>@endforelse</div>
     </section>
 </div>

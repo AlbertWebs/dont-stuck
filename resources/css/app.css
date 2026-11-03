@@ -267,3 +267,32 @@ body.theme-dark .employed-step-labels [data-step-label].is-complete .step-number
     .site-nav>a:hover,.site-nav>a[aria-current=page]{background:var(--surface-soft);color:var(--brand)}
 }
 @media(prefers-reduced-motion:reduce){.menu-toggle-icon i,.site-nav{transition:none!important}}
+
+.client-record-heading{align-items:center;gap:24px;margin-bottom:20px}
+.client-record-heading>div:first-child{min-width:0}
+.client-record-heading h1{font-size:clamp(28px,3vw,38px);overflow-wrap:anywhere}
+.client-record-heading p{display:flex;flex-wrap:wrap;gap:5px 16px;margin:0;color:var(--muted);font-size:12px;line-height:1.5}
+.client-record-actions{flex:0 0 auto;gap:9px}
+.client-record-actions .button{min-height:44px;padding-inline:15px;font-size:11px;font-weight:700;white-space:nowrap}
+.client-record-actions .button-outline-dark{background:var(--surface)}
+.client-record-nav{display:flex;gap:7px;overflow-x:auto;margin:0 0 18px;padding:3px 1px 8px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.client-record-nav a{display:inline-flex;align-items:center;min-height:38px;flex:0 0 auto;padding:0 13px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink-soft);font-size:11px;font-weight:700;transition:background .15s,border-color .15s,color .15s}
+.client-record-nav a:hover,.client-record-nav a:focus-visible{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 6%,var(--surface));color:var(--brand);outline:none}
+.client-record-grid>[id]{scroll-margin-top:86px}
+.client-record-grid>.panel{padding:22px}
+.client-profile-grid small,.client-application-facts>span,.client-loan-facts>span{font-size:10px;line-height:1.4}
+.client-profile-grid strong,.client-application-facts strong,.client-loan-facts strong{font-size:12px;line-height:1.5}
+.client-record-row-heading strong{font-size:13px}
+.client-record-row-heading small{font-size:10px;line-height:1.5}
+.client-application-facts,.client-loan-facts{gap:14px}
+.client-record-note{font-size:11px}
+.client-history-details summary{font-size:11px}
+.client-history-list article strong,.client-finance-group h3,.client-support-group h3{font-size:11px}
+.client-history-list article small,.client-history-list article p,.client-finance-entry small,.client-finance-entry>span,.client-support-entry small,.client-document-entry small,.client-document-entry>span:last-child,.client-activity-list small,.client-activity-list p{font-size:10px;line-height:1.55}
+.client-finance-entry strong,.client-support-entry strong,.client-document-entry strong{font-size:11px;line-height:1.5}
+.client-activity-list strong{font-size:11px}
+body.admin-body.theme-dark .client-record-nav a{background:#222a26;color:#edf1ed}
+body.admin-body.theme-dark .client-record-nav a:hover,body.admin-body.theme-dark .client-record-nav a:focus-visible{background:#352629;color:#fff}
+@media(max-width:800px){.client-record-heading{gap:15px}.client-record-heading p{font-size:11px}.client-record-actions{width:100%}.client-record-actions .button{flex:1;justify-content:center}.client-record-nav{margin-inline:-2px}}
+@media(max-width:520px){.client-record-heading h1{font-size:27px}.client-record-heading p{display:grid;gap:3px}.client-record-actions{display:grid;grid-template-columns:1fr 1fr}.client-record-actions .button{min-width:0;padding-inline:8px;font-size:10px}.client-record-grid>.panel{padding:15px}.client-profile-grid{grid-template-columns:1fr;gap:12px}.client-application-facts,.client-loan-facts{grid-template-columns:1fr 1fr;gap:11px}.client-record-nav a{min-height:40px;font-size:10px}.client-loan-card .data-table{min-width:700px}}
+@media(max-width:360px){.client-record-actions{grid-template-columns:1fr}.client-record-heading h1{font-size:24px}.client-application-facts,.client-loan-facts{grid-template-columns:1fr}}

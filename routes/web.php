@@ -85,6 +85,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active'])->group(fu
     Route::get('/clients', [ClientRecordController::class, 'index'])->name('clients.index');
     Route::get('/clients/{borrower}', [ClientRecordController::class, 'show'])->name('clients.show');
     Route::get('/clients/{borrower}/export', [ClientRecordController::class, 'export'])->name('clients.export');
+    Route::get('/clients/{borrower}/export/pdf', [ClientRecordController::class, 'pdf'])->name('clients.export.pdf');
     Route::get('/loans', [PortfolioController::class, 'loans'])->name('loans.index');
     Route::get('/repayments', [PortfolioController::class, 'repayments'])->name('repayments.index');
     Route::get('/overdue', [PortfolioController::class, 'overdue'])->name('overdue.index');
