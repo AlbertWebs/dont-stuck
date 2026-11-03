@@ -96,7 +96,7 @@ class ApplicationController extends Controller
             'status' => ['required', 'string', 'max:64'],
             'remarks' => ['nullable', 'string', 'max:3000'],
             'approved_amount' => ['nullable', 'required_if:status,approved', 'numeric', 'decimal:0,2', 'gt:0'],
-            'approved_months' => ['nullable', 'required_if:status,approved', 'integer', 'between:1,120'],
+            'approved_months' => ['nullable', 'required_if:status,approved', 'integer', 'between:1,3'],
         ]);
 
         $workflow->transition(

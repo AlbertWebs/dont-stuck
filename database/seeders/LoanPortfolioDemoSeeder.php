@@ -99,6 +99,7 @@ class LoanPortfolioDemoSeeder extends Seeder
             $applicationStatus = self::PIPELINE_STATUSES[$offset] ?? self::LOAN_STATUSES[$offset - count(self::PIPELINE_STATUSES)];
             $loanStatus = $offset < count(self::PIPELINE_STATUSES) ? null : $applicationStatus;
             $requestedAmount = 20000 + ($sequence * 5000);
+            $termMonths = (($sequence - 1) % 3) + 1;
             $applicationDate = $this->applicationDate($loanStatus, $sequence);
             $application = $borrower->applications()->updateOrCreate(
                 ['reference' => sprintf('DSS-DEMO-APP-%04d', $sequence)],
@@ -106,12 +107,12 @@ class LoanPortfolioDemoSeeder extends Seeder
                     'loan_product_id' => $product->id,
                     'assigned_user_id' => $officer->id,
                     'requested_amount' => number_format($requestedAmount, 2, '.', ''),
-                    'requested_months' => 6,
+                    'requested_months' => $termMonths,
                     'approved_amount' => in_array($applicationStatus, ['approved', 'finance_processing', 'pending_disbursement', 'active', 'partially_repaid', 'overdue', 'defaulted', 'fully_repaid'], true)
                         ? number_format($requestedAmount, 2, '.', '')
                         : null,
                     'approved_months' => in_array($applicationStatus, ['approved', 'finance_processing', 'pending_disbursement', 'active', 'partially_repaid', 'overdue', 'defaulted', 'fully_repaid'], true)
-                        ? 6
+                        ? $termMonths
                         : null,
                     'purpose' => ['School fees', 'Business stock', 'Medical expenses', 'Home improvement', 'Professional course'][$offset % 5],
                     'status' => $applicationStatus,
@@ -126,15 +127,14 @@ class LoanPortfolioDemoSeeder extends Seeder
             $this->setTimestamps($application, $applicationDate);
 
             if ($loanStatus !== null) {
-                $this->seedLoan($application, $borrower->id, $loanStatus, $requestedAmount, $sequence, $officer);
+                $this->seedLoan($application, $borrower->id, $loanStatus, $requestedAmount, $sequence, $officer, $termMonths);
             }
         }
     }
 
-    private function seedLoan(LoanApplication $application, int $borrowerId, string $status, int $principal, int $sequence, User $officer): void
+    private function seedLoan(LoanApplication $application, int $borrowerId, string $status, int $principal, int $sequence, User $officer, int $termMonths): void
     {
         $disbursedOn = $this->disbursementDate($status, $sequence);
-        $termMonths = 6;
         $maturityDate = $disbursedOn->addMonthsNoOverflow($termMonths);
         $account = LoanAccount::query()->updateOrCreate(
             ['loan_application_id' => $application->id],

@@ -42,6 +42,10 @@ class DisbursementService
                 throw ValidationException::withMessages(['application' => 'Approved amount and repayment period must be recorded before disbursement.']);
             }
 
+            if ($lockedApplication->approved_months < 1 || $lockedApplication->approved_months > 3) {
+                throw ValidationException::withMessages(['application' => 'The approved repayment period must be between 1 and 3 months before disbursement.']);
+            }
+
             $product = LoanProduct::query()->lockForUpdate()->find($lockedApplication->loan_product_id);
 
             if (! $product) {

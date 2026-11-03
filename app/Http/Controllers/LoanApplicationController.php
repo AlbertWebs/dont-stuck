@@ -13,7 +13,7 @@ class LoanApplicationController extends Controller
 {
     public function create(): View
     {
-        return view('public.apply', ['products' => LoanProduct::query()->where('is_active', true)->orderBy('name')->get()]);
+        return view('public.apply', ['products' => LoanProduct::query()->where('is_active', true)->where(fn ($query) => $query->whereNull('repayment_months')->orWhereBetween('repayment_months', [1, 3]))->orderBy('name')->get()]);
     }
 
     public function store(SubmitLoanApplicationRequest $request, LoanApplicationIntakeService $intake): RedirectResponse|JsonResponse

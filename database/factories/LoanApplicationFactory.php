@@ -25,7 +25,7 @@ class LoanApplicationFactory extends Factory
             'loan_product_id' => LoanProduct::factory(),
             'assigned_user_id' => null,
             'requested_amount' => '25000.00',
-            'requested_months' => 6,
+            'requested_months' => 3,
             'purpose' => fake()->sentence(8),
             'status' => 'submitted',
             'consented_at' => now(),

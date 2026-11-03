@@ -25,7 +25,7 @@ class LoanProductController extends Controller
             'description' => ['required', 'string', 'max:2000'],
             'minimum_amount' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
             'maximum_amount' => ['nullable', 'numeric', 'min:0', 'max:9999999999', 'gte:minimum_amount'],
-            'repayment_months' => ['nullable', 'integer', 'between:1,120'],
+            'repayment_months' => ['nullable', 'integer', 'between:1,3'],
             'interest_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'interest_basis' => ['nullable', 'in:flat_monthly_equal_principal,reducing_monthly_equal_principal'],
             'processing_fee_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],

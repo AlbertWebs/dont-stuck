@@ -82,6 +82,10 @@ class ApplicationWorkflowService
                     throw ValidationException::withMessages(['approved_amount' => 'Record the approved amount and repayment period before approving this application.']);
                 }
 
+                if ($approvedMonths < 1 || $approvedMonths > 3) {
+                    throw ValidationException::withMessages(['approved_months' => 'The approved repayment period must be between 1 and 3 months.']);
+                }
+
                 if (Money::toCents($approvedAmount) > Money::toCents((string) $locked->requested_amount)) {
                     throw ValidationException::withMessages(['approved_amount' => 'The approved amount cannot exceed the requested amount.']);
                 }
