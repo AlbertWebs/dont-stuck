@@ -68,9 +68,9 @@ class ClientRecordController extends Controller
         ]);
 
         $applicationIds = $borrower->applications->modelKeys();
-        $documentIds = $borrower->applications->flatMap->documents->modelKeys();
+        $documentIds = $borrower->applications->flatMap->documents->pluck('id')->all();
         $loanIds = $borrower->loanAccounts->modelKeys();
-        $paymentIds = $borrower->loanAccounts->flatMap->payments->modelKeys();
+        $paymentIds = $borrower->loanAccounts->flatMap->payments->pluck('id')->all();
         $activity = AuditLog::query()
             ->with('actor')
             ->where(function (Builder $query) use ($borrower, $applicationIds, $documentIds, $loanIds, $paymentIds): void {
@@ -138,9 +138,9 @@ class ClientRecordController extends Controller
         $applications = $borrower->applications;
         $loanAccounts = $borrower->loanAccounts;
         $applicationIds = $applications->modelKeys();
-        $documentIds = $applications->flatMap->documents->modelKeys();
+        $documentIds = $applications->flatMap->documents->pluck('id')->all();
         $loanIds = $loanAccounts->modelKeys();
-        $paymentIds = $loanAccounts->flatMap->payments->modelKeys();
+        $paymentIds = $loanAccounts->flatMap->payments->pluck('id')->all();
         $auditLogger->record($request->user(), 'client_record.exported', $borrower, [
             'application_count' => $applications->count(),
             'loan_count' => $loanAccounts->count(),
