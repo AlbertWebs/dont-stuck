@@ -19,7 +19,10 @@ class LoanApplicationController extends Controller
 {
     public function create(): View
     {
-        return view('public.apply', ['products' => LoanProduct::query()->where('is_active', true)->where(fn ($query) => $query->whereNull('repayment_months')->orWhereBetween('repayment_months', [1, 3]))->orderBy('name')->get()]);
+        return view('public.apply', [
+            'products' => LoanProduct::query()->where('is_active', true)->where(fn ($query) => $query->whereNull('repayment_months')->orWhereBetween('repayment_months', [1, 3]))->orderBy('name')->get(),
+            'loanTerms' => LoanTermsSetting::query()->findOrFail(1),
+        ]);
     }
 
     public function store(SubmitLoanApplicationRequest $request, LoanApplicationIntakeService $intake): RedirectResponse|JsonResponse
@@ -75,6 +78,9 @@ class LoanApplicationController extends Controller
         if (Money::toCents($summary['net_disbursement']) <= 0) {
             throw ValidationException::withMessages(['requested_amount' => 'The payout must remain positive after fees are deducted.']);
         }
+
+        $summary['daily_late_fee'] = $product->daily_late_fee ?? '200.00';
+        $summary['late_penalty_start'] = $product->late_penalty_start;
 
         return response()->json($summary);
     }

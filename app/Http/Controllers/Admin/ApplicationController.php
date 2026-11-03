@@ -59,6 +59,7 @@ class ApplicationController extends Controller
 
         return view('admin.applications.show', [
             'application' => $application,
+            'applicationDetails' => $application->application_data ?? [],
             'loanOfficers' => User::query()->where('role', 'loan_officer')->where('is_active', true)->orderBy('name')->get(),
             'availableTransitions' => $workflow->availableTransitions($request->user(), $application),
             'repaymentPerformance' => $application->loanAccount

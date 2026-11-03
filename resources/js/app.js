@@ -84,6 +84,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const loanProductInput = stepForm.querySelector('[name="loan_product_id"]');
         const requestedAmountInput = stepForm.querySelector('[name="requested_amount"]');
         const requestedMonthsInput = stepForm.querySelector('[name="requested_months"]');
+        const requestedAmountWords = stepForm.querySelector('[data-application-amount-words]');
+        const requestedAmountWordsInput = stepForm.querySelector('[data-application-amount-words-input]');
+        const borrowerSignature = stepForm.querySelector('[data-borrower-signature]');
+        const borrowerSignaturePreview = stepForm.querySelector('[data-borrower-signature-preview]');
+        const guarantorAmountFigures = [...stepForm.querySelectorAll('[data-guarantor-amount-figure]')];
+        const guarantorAmountWords = [...stepForm.querySelectorAll('[data-guarantor-amount-words]')];
+        const latePenaltyTerms = [...stepForm.querySelectorAll('[data-application-late-penalty]')];
         let current = 0;
         let quoteRequestId = 0;
         let quoteAbortController = null;
@@ -105,6 +112,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     summaryBody.replaceChildren();
                     summaryBody.hidden = true;
                 }
+                requestedAmountWords.textContent = 'Enter a loan amount to calculate its wording.';
+                requestedAmountWordsInput.value = '';
+                guarantorAmountFigures.forEach((element) => { element.textContent = 'KSh —'; });
+                guarantorAmountWords.forEach((element) => { element.textContent = 'Complete the loan amount and repayment period to calculate the guarantee amount.'; });
 
                 return;
             }
@@ -151,6 +162,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     ['Estimated payout after fees', result.net_disbursement],
                     ['Total scheduled repayment', result.total_repayment],
                     ['Total interest and fees', result.total_cost],
+                    ['Processing fee rate', `${result.processing_fee_rate}%`],
+                    ['Total repayment in words', result.total_repayment_words],
+                    ['Daily late-payment penalty stated in the form', `${formatMoney(result.daily_late_fee)} per overdue day`],
                 ];
                 const totalsGrid = document.createElement('dl');
                 totalsGrid.className = 'payment-summary-totals';
@@ -159,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const term = document.createElement('dt');
                     const value = document.createElement('dd');
                     term.textContent = label;
-                    value.textContent = formatMoney(amount);
+                    value.textContent = label.includes('in words') || label.includes('penalty stated') || label.includes('fee rate') ? amount : formatMoney(amount);
                     row.append(term, value);
                     totalsGrid.append(row);
                 });
@@ -180,9 +194,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const methodLabel = result.interest_basis === 'flat_monthly_equal_principal' ? 'Flat monthly' : 'Reducing balance';
                 summaryMethod.textContent = `${result.interest_rate}% monthly · ${methodLabel}`;
-                summaryMessage.textContent = 'Estimate based on current system settings. Late charges are not included; the final written offer is subject to review.';
+                summaryMessage.textContent = 'Estimate based on current system settings. Late charges are excluded from scheduled installments and may accrue separately under the agreement.';
                 summaryBody.replaceChildren(totalsGrid, installmentsHeading, installmentList);
                 summaryBody.hidden = false;
+                requestedAmountWords.textContent = result.principal_words;
+                requestedAmountWordsInput.value = result.principal_words;
+                guarantorAmountFigures.forEach((element) => { element.textContent = `${formatMoney(result.total_repayment)} guarantee`; });
+                guarantorAmountWords.forEach((element) => { element.textContent = result.total_repayment_words; });
+                latePenaltyTerms.forEach((element) => { element.textContent = formatMoney(result.daily_late_fee); });
                 quoteIsReady = true;
             } catch (error) {
                 if (error.name !== 'AbortError' && requestId === quoteRequestId) {
@@ -196,7 +215,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const syncFixedRepaymentTerm = () => {
             const fixedMonths = loanProductInput.selectedOptions[0]?.dataset.fixedMonths || '';
-            requestedMonthsInput.readOnly = Boolean(fixedMonths);
+            [...requestedMonthsInput.options].forEach((option) => {
+                option.disabled = Boolean(fixedMonths) && option.value !== fixedMonths;
+            });
             if (fixedMonths) {
                 requestedMonthsInput.value = fixedMonths;
             }
@@ -222,6 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const schedulePaymentSummaryUpdate = () => {
+            quoteIsReady = false;
             window.clearTimeout(quoteDebounce);
             quoteDebounce = window.setTimeout(updatePaymentSummary, 250);
         };
@@ -232,14 +254,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         requestedAmountInput.addEventListener('input', schedulePaymentSummaryUpdate);
         requestedMonthsInput.addEventListener('input', schedulePaymentSummaryUpdate);
+        requestedMonthsInput.addEventListener('change', schedulePaymentSummaryUpdate);
+        borrowerSignature?.addEventListener('input', () => {
+            if (borrowerSignaturePreview) {
+                borrowerSignaturePreview.value = borrowerSignature.value;
+            }
+        });
 
         const validateCurrentStep = () => {
-            const controls = [...steps[current].querySelectorAll('input, select, textarea')].filter((control) => !control.disabled);
+            const controls = [...steps[current].querySelectorAll('input, select, textarea')].filter((control) => {
+                if (control.disabled) {
+                    return false;
+                }
+
+                const collateralRow = control.closest('[data-collateral-row]');
+                if (collateralRow && !collateralRow.querySelector('[name$="[description]"]').value.trim() && !control.name.endsWith('[description]')) {
+                    return false;
+                }
+
+                return true;
+            });
             const invalid = controls.find((control) => !control.checkValidity());
 
             if (invalid) {
                 invalid.reportValidity();
                 invalid.focus();
+                return false;
+            }
+
+            if (current === 5 && !stepForm.querySelector('[name="guarantors[0][is_colleague]"]:checked, [name="guarantors[1][is_colleague]"]:checked')) {
+                showFeedback('At least one of the two guarantors must be your colleague.', 'error');
+                current = 4;
+                render();
+                stepForm.querySelector('[name="guarantors[0][is_colleague]"]').focus();
                 return false;
             }
 
@@ -292,6 +339,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const control = [...stepForm.elements].find((element) => element.name && normalizeFieldName(element.name) === name);
                 const container = control?.closest('.field, .upload-field, .check-row');
                 const message = Array.isArray(messages) ? messages[0] : String(messages);
+
+                if (name === 'guarantors') {
+                    const error = stepForm.querySelector('[data-guarantor-general-error]');
+                    if (error) {
+                        error.textContent = message;
+                        firstInvalid ??= stepForm.querySelector('[name="guarantors[0][is_colleague]"]');
+                    }
+                }
 
                 if (control) {
                     control.setAttribute('aria-invalid', 'true');
