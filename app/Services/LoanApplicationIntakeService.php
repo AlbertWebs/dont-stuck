@@ -99,7 +99,8 @@ class LoanApplicationIntakeService
                     'requirements' => [
                         'home_or_workplace_visit_consent' => true,
                         'collateral_ownership_confirmed' => ! empty($data['collateral_items']),
-                        'collateral_signed_by' => empty($data['collateral_items']) ? null : $data['borrower_signature'],
+                        'collateral_initials' => empty($data['collateral_items']) ? null : $data['security_declaration_initials'],
+                        'collateral_signed_by' => empty($data['collateral_items']) ? null : $data['security_declaration_initials'],
                         'collateral_signed_at' => empty($data['collateral_items']) ? null : now()->toIso8601String(),
                     ],
                 ],

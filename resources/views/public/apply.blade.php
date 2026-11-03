@@ -83,7 +83,7 @@
             @endforeach
         </div>
             <label class="check-row employed-consent-row"><input type="checkbox" name="collateral_ownership_acknowledged" value="1" @checked(old('collateral_ownership_acknowledged'))><span>I declare that I am the legal and beneficial owner of the items listed, that they are free from mortgages, charges, pledge, lien, assignment or other encumbrance, and I undertake to comply with the instrument’s conditions.</span></label>@error('collateral_ownership_acknowledged')<small class="field-error">{{ $message }}</small>@enderror
-            <div class="field-grid"><div class="field"><label>Borrower signature for security declaration</label><input value="{{ old('borrower_signature') }}" disabled data-borrower-signature-preview></div><div class="field"><label>Date</label><input value="Recorded on submission" disabled></div></div>
+            <div class="field-grid"><div class="field"><label for="security-declaration-initials">Borrower initials for security declaration <b data-security-initials-required hidden>*</b></label><input id="security-declaration-initials" name="security_declaration_initials" value="{{ old('security_declaration_initials') }}" maxlength="5" pattern="[A-Za-z]{1,5}" autocomplete="off" autocapitalize="characters" placeholder="e.g. AM" data-security-initials><small>Enter your initials. Required when you list items as security.</small>@error('security_declaration_initials')<small class="field-error">{{ $message }}</small>@enderror</div><div class="field"><label>Date</label><input value="Recorded on submission" disabled></div></div>
         </fieldset>
 
         @foreach ([0, 1] as $index)

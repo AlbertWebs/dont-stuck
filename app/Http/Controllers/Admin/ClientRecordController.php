@@ -210,7 +210,7 @@ class ClientRecordController extends Controller
             'Payment allocations' => ['headers' => ['Loan reference', 'Payment date', 'Payment status', 'Installment', 'Principal', 'Interest', 'Fees', 'Penalties'], 'rows' => $loanAccounts->flatMap(fn (LoanAccount $loan) => $loan->payments->flatMap(fn ($payment) => $payment->allocations->map(fn ($allocation): array => [$loan->reference, $payment->paid_on->toDateString(), $payment->status, $allocation->schedule->installment_number, $allocation->principal_amount, $allocation->interest_amount, $allocation->fees_amount, $allocation->penalty_amount])))],
             'Disbursements & charges' => ['headers' => ['Loan reference', 'Record type', 'Date', 'Amount (KSh)', 'Gross amount (KSh)', 'Fees withheld (KSh)', 'Method / charge type', 'Status', 'Recorded by', 'Reference / notes'], 'rows' => $this->financialEventRows($loanAccounts)],
             'Guarantors' => ['headers' => ['Application reference', 'Name', 'National ID', 'Phone', 'Email', 'Relationship', 'Colleague', 'Address', 'Work phone', 'Work station', 'Residence', 'Building', 'House', 'Guarantee (KSh)', 'Guarantee in words', 'Signature name', 'Signed on', 'Joint & several accepted'], 'rows' => $this->guarantorRows($applications)],
-            'Collateral' => ['headers' => ['Application reference', 'Description', 'Quantity', 'Make / model', 'Serial number', 'Colour', 'Estimated value (KSh)', 'Ownership declaration confirmed'], 'rows' => $this->collateralRows($applications)],
+            'Collateral' => ['headers' => ['Application reference', 'Description', 'Quantity', 'Make / model', 'Serial number', 'Colour', 'Estimated value (KSh)', 'Ownership declaration confirmed', 'Security declaration sign-off', 'Declaration recorded at'], 'rows' => $this->collateralRows($applications)],
             'Supporting records' => ['headers' => ['Application reference', 'Record type', 'Name / description', 'Identifier / details', 'Phone / quantity', 'Relationship / type', 'Value (KSh)', 'Date / uploaded by'], 'rows' => $this->supportingRows($applications)],
             'Activity log' => ['headers' => ['Date', 'Action', 'Related record', 'Staff member', 'Details'], 'rows' => $activity->map(fn (AuditLog $log): array => [$log->created_at?->toDateTimeString(), $log->action, class_basename((string) $log->subject_type).' #'.$log->subject_id, $log->actor?->name ?? 'Online / system', json_encode($log->metadata, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: ''])],
         ];
@@ -265,7 +265,11 @@ class ClientRecordController extends Controller
      */
     private function collateralRows(Collection $applications): Collection
     {
-        return $applications->flatMap(fn (LoanApplication $application) => $application->collateralItems->map(fn ($item): array => [$application->reference, $item->description, $item->quantity, $item->make_model, $item->serial_number, $item->color, $item->estimated_value, $item->ownership_confirmed ? 'Yes' : 'No']));
+        return $applications->flatMap(function (LoanApplication $application): Collection {
+            $requirements = $application->application_data['requirements'] ?? [];
+
+            return $application->collateralItems->map(fn ($item): array => [$application->reference, $item->description, $item->quantity, $item->make_model, $item->serial_number, $item->color, $item->estimated_value, $item->ownership_confirmed ? 'Yes' : 'No', $requirements['collateral_initials'] ?? $requirements['collateral_signed_by'] ?? null, $requirements['collateral_signed_at'] ?? null]);
+        });
     }
 
     private function authorizeStaff(Request $request): void

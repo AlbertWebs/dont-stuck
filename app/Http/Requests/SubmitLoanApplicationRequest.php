@@ -78,6 +78,7 @@ class SubmitLoanApplicationRequest extends FormRequest
             'collateral_items.*.color' => ['required', 'string', 'max:100'],
             'collateral_items.*.estimated_value' => ['required', 'numeric', 'min:0', 'max:9999999999'],
             'collateral_ownership_acknowledged' => ['nullable', 'accepted'],
+            'security_declaration_initials' => ['nullable', 'string', 'max:5', 'regex:/^[A-Za-z]{1,5}$/'],
             'documents' => ['nullable', 'array'],
             'documents.national_id' => $requiredDocument,
             'documents.appointment_letter' => $requiredDocument,
@@ -173,6 +174,10 @@ class SubmitLoanApplicationRequest extends FormRequest
 
             if (is_array($this->input('collateral_items')) && $this->input('collateral_items') !== [] && $this->input('collateral_ownership_acknowledged') !== '1') {
                 $validator->errors()->add('collateral_ownership_acknowledged', 'Confirm that you own these items and that they are free from encumbrances.');
+            }
+
+            if (is_array($this->input('collateral_items')) && $this->input('collateral_items') !== [] && ! filled($this->input('security_declaration_initials'))) {
+                $validator->errors()->add('security_declaration_initials', 'Enter your initials to sign the security declaration.');
             }
 
             if (is_string($this->input('requested_amount')) && is_string($this->input('requested_amount_words')) && filled($this->input('requested_amount_words')) && $this->input('requested_amount_words') !== (new KenyanMoneyWords)->spell($this->input('requested_amount'))) {

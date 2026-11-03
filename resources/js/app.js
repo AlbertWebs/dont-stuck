@@ -108,8 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const requestedMonthsInput = stepForm.querySelector('[name="requested_months"]');
         const requestedAmountWords = stepForm.querySelector('[data-application-amount-words]');
         const requestedAmountWordsInput = stepForm.querySelector('[data-application-amount-words-input]');
-        const borrowerSignature = stepForm.querySelector('[data-borrower-signature]');
-        const borrowerSignaturePreview = stepForm.querySelector('[data-borrower-signature-preview]');
+        const securityInitials = stepForm.querySelector('[data-security-initials]');
+        const securityInitialsRequired = stepForm.querySelector('[data-security-initials-required]');
         const guarantorAmountFigures = [...stepForm.querySelectorAll('[data-guarantor-amount-figure]')];
         const guarantorAmountWords = [...stepForm.querySelectorAll('[data-guarantor-amount-words]')];
         const latePenaltyTerms = [...stepForm.querySelectorAll('[data-application-late-penalty]')];
@@ -289,11 +289,25 @@ document.addEventListener('DOMContentLoaded', () => {
         requestedAmountInput.addEventListener('input', schedulePaymentSummaryUpdate);
         requestedMonthsInput.addEventListener('input', schedulePaymentSummaryUpdate);
         requestedMonthsInput.addEventListener('change', schedulePaymentSummaryUpdate);
-        borrowerSignature?.addEventListener('input', () => {
-            if (borrowerSignaturePreview) {
-                borrowerSignaturePreview.value = borrowerSignature.value;
+        const updateSecurityInitialsRequirement = () => {
+            const hasSecurityItems = [...stepForm.querySelectorAll('[data-collateral-row]')]
+                .some((row) => row.querySelector('[name$="[description]"]').value.trim() !== '');
+
+            if (securityInitials) {
+                securityInitials.required = hasSecurityItems;
             }
+            if (securityInitialsRequired) {
+                securityInitialsRequired.hidden = !hasSecurityItems;
+            }
+        };
+
+        stepForm.querySelectorAll('[data-collateral-row] [name$="[description]"]').forEach((input) => {
+            input.addEventListener('input', updateSecurityInitialsRequirement);
         });
+        securityInitials?.addEventListener('input', () => {
+            securityInitials.value = securityInitials.value.replace(/[^a-z]/gi, '').toUpperCase().slice(0, 5);
+        });
+        updateSecurityInitialsRequirement();
 
         const validateCurrentStep = () => {
             const controls = [...steps[current].querySelectorAll('input, select, textarea')].filter((control) => {
