@@ -110,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const requestedAmountWordsInput = stepForm.querySelector('[data-application-amount-words-input]');
         const securityInitials = stepForm.querySelector('[data-security-initials]');
         const securityInitialsRequired = stepForm.querySelector('[data-security-initials-required]');
+        const borrowerNameInput = stepForm.querySelector('[name="full_name"]');
         const guarantorAmountFigures = [...stepForm.querySelectorAll('[data-guarantor-amount-figure]')];
         const guarantorAmountWords = [...stepForm.querySelectorAll('[data-guarantor-amount-words]')];
         const latePenaltyTerms = [...stepForm.querySelectorAll('[data-application-late-penalty]')];
@@ -304,9 +305,22 @@ document.addEventListener('DOMContentLoaded', () => {
         stepForm.querySelectorAll('[data-collateral-row] [name$="[description]"]').forEach((input) => {
             input.addEventListener('input', updateSecurityInitialsRequirement);
         });
+        let securityInitialsWereEdited = Boolean(securityInitials?.value.trim());
+        const prefillSecurityInitials = () => {
+            if (securityInitialsWereEdited || !securityInitials || !borrowerNameInput) {
+                return;
+            }
+
+            securityInitials.value = borrowerNameInput.value.trim().split(/\s+/).filter(Boolean)
+                .map((namePart) => namePart[0]).join('').toUpperCase().slice(0, 5);
+        };
+
+        borrowerNameInput?.addEventListener('input', prefillSecurityInitials);
         securityInitials?.addEventListener('input', () => {
+            securityInitialsWereEdited = true;
             securityInitials.value = securityInitials.value.replace(/[^a-z]/gi, '').toUpperCase().slice(0, 5);
         });
+        prefillSecurityInitials();
         updateSecurityInitialsRequirement();
 
         const validateCurrentStep = () => {

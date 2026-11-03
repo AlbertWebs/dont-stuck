@@ -177,7 +177,7 @@ class SubmitLoanApplicationRequest extends FormRequest
             }
 
             if (is_array($this->input('collateral_items')) && $this->input('collateral_items') !== [] && ! filled($this->input('security_declaration_initials'))) {
-                $validator->errors()->add('security_declaration_initials', 'Enter your initials to sign the security declaration.');
+                $validator->errors()->add('security_declaration_initials', 'Add your initials in the Security and collateral step to sign the security declaration.');
             }
 
             if (is_string($this->input('requested_amount')) && is_string($this->input('requested_amount_words')) && filled($this->input('requested_amount_words')) && $this->input('requested_amount_words') !== (new KenyanMoneyWords)->spell($this->input('requested_amount'))) {
