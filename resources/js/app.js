@@ -251,9 +251,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 step.setAttribute('aria-hidden', String(index !== current));
             });
             labels.forEach((label, index) => {
-                label.classList.toggle('is-current', index === current);
-                label.classList.toggle('is-complete', index < current);
-                if (index === current) {
+                const isCurrent = index === current;
+                const isNext = index === current + 1;
+                const status = label.querySelector('[data-step-status]');
+                label.hidden = !isCurrent && !isNext;
+                label.classList.toggle('is-current', isCurrent);
+                label.classList.toggle('is-next', isNext);
+                if (status) {
+                    status.textContent = isCurrent ? 'Current step' : isNext ? 'Next step' : '';
+                }
+                if (isCurrent) {
                     label.setAttribute('aria-current', 'step');
                 } else {
                     label.removeAttribute('aria-current');
